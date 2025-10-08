@@ -1,6 +1,7 @@
 # NotifyHub_plugins
 都是纯自用，不可靠，有问题请自改。cursor写的，我是一句看不懂
 里面Ai写的当不得真，说下实际情况：
+
 1、pill_reminder
 用药提醒，在用，可用
 
