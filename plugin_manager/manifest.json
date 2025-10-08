@@ -1,11 +1,11 @@
 {
   "id": "plugin_manager",
   "name": "插件管理器",
-  "description": "便于插件查看、下载与备份",
-  "author": "dysobo",
+  "description": "便于插件查看与下载",
+  "author": "NotifyHub",
   "logo": "https://img.icons8.com/color/48/000000/store.png",
   "thumbnailurl": "https://img.icons8.com/color/48/000000/store.png",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "documentation": "",
   "path": "/plugin_manager",
   "configField": [
@@ -75,7 +75,7 @@
     },
     {
       "fieldType": "text",
-      "value": "⚠️ 安装或更新插件后，需要重启NotifyHub服务才能生效！"
+      "value": "⚠️ 安装或更新插件后，需要重启NotifyHub服务才能生效！\n\n重启方法：\n1. 在插件管理器中点击\"重启NotifyHub\"按钮\n2. 或手动重启NotifyHub服务\n3. 重启后新插件将出现在左侧菜单中"
     },
     {
       "fieldType": "title",
@@ -83,7 +83,7 @@
     },
     {
       "fieldType": "text",
-      "value": "\"又不是不能用\"，功能是有了，好看花哨是做不来一点"
+      "value": "本人本着\"又不是不能用\"的原则，反正是有了，好看这种事完全整不了一点 😅"
     }
   ],
   "frontend_page": {
