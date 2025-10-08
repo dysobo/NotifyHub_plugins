@@ -1,0 +1,114 @@
+{
+  "id": "qq_bridge",
+  "name": "QQ群消息转发",
+  "description": "对接 OneBot 12 标准实现（如 NapCatQQ），接收指定QQ群消息并转发到 NotifyHub 渠道/通道",
+  "author": "dysobo",
+  "logo": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/QQ_A.png",
+  "thumbnailurl": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/QQ_A.png",
+  "version": "0.0.1",
+  "documentation": "",
+  "path": "/qq_bridge",
+  "background": "chat",
+  "configField": [
+    {
+      "fieldName": "send_target_type",
+      "fieldType": "select",
+      "label": "发送目标类型",
+      "options": [
+        { "value": "router", "label": "按通道发送" },
+        { "value": "channel", "label": "按渠道发送" }
+      ],
+      "defaultValue": "router"
+    },
+    {
+      "fieldName": "bind_router",
+      "fieldType": "enum",
+      "label": "选择通道（Router）",
+      "enumValuesRef": "RouterList",
+      "multiValue": false,
+      "conditional": { "field": "send_target_type", "operator": "equals", "value": "router" }
+    },
+    {
+      "fieldName": "bind_channel",
+      "fieldType": "enum",
+      "label": "选择渠道（Channel）",
+      "enumValuesRef": "ChannelList",
+      "multiValue": false,
+      "conditional": { "field": "send_target_type", "operator": "equals", "value": "channel" }
+    },
+    {
+      "fieldName": "allowed_groups",
+      "fieldType": "string",
+      "label": "允许的QQ群（逗号分隔群号）",
+      "helpText": "示例：12345678, 987654321。留空表示允许所有群",
+      "required": false
+    },
+    {
+      "fieldName": "allowed_users",
+      "fieldType": "string",
+      "label": "允许的联系人（逗号分隔QQ号）",
+      "helpText": "示例：123456789, 987654321。留空表示允许所有联系人",
+      "required": false
+    },
+    {
+      "fieldName": "verify_secret",
+      "fieldType": "string",
+      "label": "Webhook Secret（可选）",
+      "helpText": "若 OneBot 实现配置了 secret，本插件校验 X-Signature(HMAC-SHA1)",
+      "required": false
+    },
+    {
+      "fieldName": "enable_ws",
+      "fieldType": "switch",
+      "label": "启用 OneBot WebSocket 监听",
+      "helpText": "需要 OneBot 服务器运行并支持 WebSocket。如果连接失败，请关闭此选项使用 HTTP webhook。",
+      "defaultValue": false
+    },
+    {
+      "fieldName": "onebot_ws_url",
+      "fieldType": "string",
+      "label": "OneBot WS 地址",
+      "helpText": "例如：ws://127.0.0.1:3001/",
+      "defaultValue": "ws://127.0.0.1:3001/",
+      "conditional": { "field": "enable_ws", "operator": "equals", "value": true }
+    },
+    {
+      "fieldName": "onebot_access_token",
+      "fieldType": "string",
+      "label": "OneBot Access Token（可选）",
+      "helpText": "若 OneBot 实现配置 access_token，将以 Authorization: Bearer 发送。用于 WebSocket 连接和 HTTP API 调用。",
+      "required": false
+    },
+    {
+      "fieldName": "onebot_http_api",
+      "fieldType": "string",
+      "label": "OneBot HTTP API 地址（可选）",
+      "helpText": "用于获取媒体文件下载链接，例如：http://192.168.0.88:4001。需要与 Access Token 配合使用。",
+      "required": false
+    },
+    {
+      "fieldName": "title_prefix",
+      "fieldType": "string",
+      "label": "标题前缀",
+      "defaultValue": "[QQ群]"
+    }
+  ],
+  "helpTextField": [
+    { "fieldType": "title", "value": "OneBot 12 标准对接（HTTP 上报或 WebSocket）" },
+    { "fieldType": "text", "value": "方式一：OneBot WebSocket（推荐）。配置 OneBot 实现的 WS 地址与 access_token，插件将自动连接并监听群消息。" },
+    { "fieldType": "text", "value": "方式二：OneBot HTTP 上报。配置 OneBot 实现的 webhook 到下方地址，必要时设置 secret。" },
+    { "fieldType": "text", "value": "媒体文件处理：如需下载图片/语音/视频文件，请配置 OneBot HTTP API 地址和 Access Token。" },
+    { "fieldType": "text", "value": "• OneBot HTTP API 地址：例如 http://192.168.0.88:4001" },
+    { "fieldType": "text", "value": "• OneBot Access Token：从 NapCat 的 HTTP 服务器配置中获取" },
+    { "fieldType": "code", "value": "Webhook: {site_url}/api/plugins/qq_bridge/webhook\nWS地址示例: ws://127.0.0.1:3001/\n标准文档: https://onebot.dev/" },
+    { "fieldType": "title", "value": "消息过滤" },
+    { "fieldType": "text", "value": "支持过滤指定的群聊和私聊消息：" },
+    { "fieldType": "text", "value": "• 允许的QQ群：只转发指定群组的消息，留空允许所有群" },
+    { "fieldType": "text", "value": "• 允许的联系人：只转发指定用户的私聊消息，留空允许所有用户" },
+    { "fieldType": "title", "value": "调试和监控" },
+    { "fieldType": "text", "value": "配置完成后可使用以下 API 端点进行监控：" },
+    { "fieldType": "code", "value": "状态检查: GET {site_url}/api/plugins/qq_bridge/status\n连接诊断: GET {site_url}/api/plugins/qq_bridge/diagnose" }
+  ]
+}
+
+
