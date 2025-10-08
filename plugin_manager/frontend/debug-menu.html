@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>菜单调试页面</title>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        .debug-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .success { background-color: #d4edda; }
+        .error { background-color: #f8d7da; }
+        .info { background-color: #d1ecf1; }
+        .warning { background-color: #fff3cd; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-container>
+                <h1>🔧 菜单调试页面</h1>
+                
+                <v-alert type="info" class="mb-4">
+                    这个页面用于诊断左侧菜单不显示的问题
+                </v-alert>
+                
+                <div class="debug-section info">
+                    <h2>步骤 1: 检查插件状态</h2>
+                    <v-btn @click="checkPluginStatus" color="primary" :loading="checkingStatus">检查插件状态</v-btn>
+                    <div v-if="pluginStatus" class="mt-4">
+                        <pre>{{ JSON.stringify(pluginStatus, null, 2) }}</pre>
+                    </div>
+                </div>
+                
+                <div class="debug-section" :class="manifestStatus">
+                    <h2>步骤 2: 检查Manifest配置</h2>
+                    <v-btn @click="checkManifest" color="primary" :loading="checkingManifest">检查Manifest</v-btn>
+                    <div v-if="manifestInfo" class="mt-4">
+                        <h3>Frontend Page配置：</h3>
+                        <pre>{{ JSON.stringify(manifestInfo.frontend_page, null, 2) }}</pre>
+                    </div>
+                </div>
+                
+                <div class="debug-section" :class="cacheStatus">
+                    <h2>步骤 3: 清除缓存和重新加载</h2>
+                    <v-alert type="info" class="mb-4">
+                        <strong>说明：</strong>清除缓存可以解决下载URL包含.zip后缀的问题。
+                    </v-alert>
+                    <v-btn @click="clearCache" color="warning" :loading="clearingCache" class="mr-2">清除缓存</v-btn>
+                    <v-btn @click="forceReload" color="primary" :loading="reloading">强制重新加载</v-btn>
+                    <div v-if="cacheResult" class="mt-4">
+                        <pre>{{ cacheResult }}</pre>
+                    </div>
+                </div>
+                
+                <div class="debug-section" :class="reloadConfigStatus">
+                    <h2>步骤 4: 重新加载配置</h2>
+                    <v-alert type="info" class="mb-4">
+                        <strong>说明：</strong>重新加载插件配置，尝试刷新菜单显示。如果菜单仍然不显示，请继续执行步骤5。
+                    </v-alert>
+                    <v-btn @click="reloadConfig" color="primary" :loading="reloadingConfig">重新加载配置</v-btn>
+                    <div v-if="reloadConfigResult" class="mt-4">
+                        <pre>{{ reloadConfigResult }}</pre>
+                    </div>
+                </div>
+                
+                <div class="debug-section" :class="restartStatus">
+                    <h2>步骤 5: 重启NotifyHub</h2>
+                    <v-alert type="warning" class="mb-4">
+                        <strong>注意：</strong>重启NotifyHub服务可能会中断当前连接，请确保已保存所有工作。
+                    </v-alert>
+                    <v-btn @click="restartNotifyHub" color="error" :loading="restarting">重启NotifyHub</v-btn>
+                    <div v-if="restartResult" class="mt-4">
+                        <pre>{{ restartResult }}</pre>
+                    </div>
+                </div>
+                
+                <div class="debug-section">
+                    <h2>步骤 6: 手动访问应用商店</h2>
+                    <p>如果菜单仍然不显示，您可以直接访问应用商店：</p>
+                    <v-btn @click="openAppStore" color="success" class="mr-2">打开应用商店</v-btn>
+                    <v-btn @click="copyAppStoreUrl" color="info">复制链接</v-btn>
+                    <div v-if="appStoreUrl" class="mt-4">
+                        <p><strong>应用商店URL：</strong></p>
+                        <code>{{ appStoreUrl }}</code>
+                    </div>
+                </div>
+                
+                <div class="debug-section">
+                    <h2>步骤 7: 测试下载功能</h2>
+                    <v-btn @click="testDownload" color="primary" :loading="testingDownload">测试下载功能</v-btn>
+                    <div v-if="downloadTestResult" class="mt-4">
+                        <pre>{{ downloadTestResult }}</pre>
+                    </div>
+                </div>
+            </v-container>
+        </v-app>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.8/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+    <script>
+        const { createApp } = Vue;
+        const { createVuetify } = Vuetify;
+
+        const vuetify = createVuetify({
+            theme: {
+                defaultTheme: 'light'
+            }
+        });
+
+        createApp({
+            data() {
+                return {
+                    pluginStatus: null,
+                    manifestInfo: null,
+                    restartResult: null,
+                    cacheResult: null,
+                    appStoreUrl: '/common/view?hidePadding=true#/api/plugins/plugin_manager/frontend/index.html',
+                    downloadTestResult: null,
+                    checkingStatus: false,
+                    checkingManifest: false,
+                    restarting: false,
+                    clearingCache: false,
+                    reloading: false,
+                    reloadingConfig: false,
+                    testingDownload: false,
+                    manifestStatus: 'info',
+                    restartStatus: 'info',
+                    cacheStatus: 'info',
+                    reloadConfigStatus: 'info',
+                    reloadConfigResult: null
+                }
+            },
+            
+            methods: {
+                async checkPluginStatus() {
+                    this.checkingStatus = true;
+                    try {
+                        const response = await fetch('/api/plugins/plugin_manager/debug/info');
+                        const data = await response.json();
+                        this.pluginStatus = data;
+                        console.log('插件状态:', data);
+                    } catch (error) {
+                        this.pluginStatus = { error: error.message };
+                        console.error('检查插件状态失败:', error);
+                    } finally {
+                        this.checkingStatus = false;
+                    }
+                },
+                
+                async checkManifest() {
+                    this.checkingManifest = true;
+                    try {
+                        // 尝试获取manifest信息
+                        const response = await fetch('/api/plugins/plugin_manager/debug/info');
+                        const data = await response.json();
+                        
+                        // 模拟manifest信息（实际应该从API获取）
+                        this.manifestInfo = {
+                            frontend_page: {
+                                name: "应用商店",
+                                icon: "mdi:store",
+                                path: "/common/view?hidePadding=true#/api/plugins/plugin_manager/frontend/index.html",
+                                add_to_menu: true
+                            }
+                        };
+                        
+                        this.manifestStatus = 'success';
+                        console.log('Manifest配置检查完成');
+                    } catch (error) {
+                        this.manifestInfo = { error: error.message };
+                        this.manifestStatus = 'error';
+                        console.error('检查Manifest失败:', error);
+                    } finally {
+                        this.checkingManifest = false;
+                    }
+                },
+                
+                async clearCache() {
+                    this.clearingCache = true;
+                    try {
+                        const response = await fetch('/api/plugins/plugin_manager/clear-cache', {
+                            method: 'POST'
+                        });
+                        const data = await response.json();
+                        this.cacheResult = JSON.stringify(data, null, 2);
+                        this.cacheStatus = 'success';
+                        console.log('缓存清除成功');
+                    } catch (error) {
+                        this.cacheResult = `清除缓存失败: ${error.message}`;
+                        this.cacheStatus = 'error';
+                        console.error('清除缓存失败:', error);
+                    } finally {
+                        this.clearingCache = false;
+                    }
+                },
+                
+                async forceReload() {
+                    this.reloading = true;
+                    try {
+                        const response = await fetch('/api/plugins/plugin_manager/force-reload', {
+                            method: 'POST'
+                        });
+                        const data = await response.json();
+                        this.cacheResult = JSON.stringify(data, null, 2);
+                        this.cacheStatus = 'success';
+                        console.log('强制重新加载成功');
+                        
+                        // 重新检查插件状态
+                        await this.checkPluginStatus();
+                    } catch (error) {
+                        this.cacheResult = `强制重新加载失败: ${error.message}`;
+                        this.cacheStatus = 'error';
+                        console.error('强制重新加载失败:', error);
+                    } finally {
+                        this.reloading = false;
+                    }
+                },
+                
+                async reloadConfig() {
+                    this.reloadingConfig = true;
+                    this.reloadConfigResult = '正在重新加载配置...';
+                    this.reloadConfigStatus = 'info';
+                    
+                    try {
+                        const response = await fetch('/api/plugins/plugin_manager/reload-config', {
+                            method: 'POST'
+                        });
+                        const data = await response.json();
+                        this.reloadConfigResult = JSON.stringify(data, null, 2);
+                        this.reloadConfigStatus = 'success';
+                        
+                        // 重新检查插件状态
+                        await this.checkPluginStatus();
+                        
+                        // 显示提示
+                        alert('配置重新加载完成！请检查左侧菜单是否显示"应用商店"。如果仍然不显示，请继续执行步骤5重启NotifyHub。');
+                    } catch (error) {
+                        this.reloadConfigResult = `重新加载配置失败: ${error.message}`;
+                        this.reloadConfigStatus = 'error';
+                        console.error('重新加载配置失败:', error);
+                    } finally {
+                        this.reloadingConfig = false;
+                    }
+                },
+                
+                async restartNotifyHub() {
+                    if (!confirm('确定要重启NotifyHub服务吗？这可能会中断当前连接。')) {
+                        return;
+                    }
+                    
+                    this.restarting = true;
+                    try {
+                        const response = await fetch('/api/plugins/plugin_manager/restart', {
+                            method: 'POST'
+                        });
+                        const data = await response.json();
+                        this.restartResult = JSON.stringify(data, null, 2);
+                        this.restartStatus = 'success';
+                        
+                        // 显示重启提示
+                        alert('NotifyHub正在重启，请等待几秒钟后刷新页面检查菜单是否显示。');
+                    } catch (error) {
+                        this.restartResult = `重启失败: ${error.message}`;
+                        this.restartStatus = 'error';
+                        console.error('重启NotifyHub失败:', error);
+                    } finally {
+                        this.restarting = false;
+                    }
+                },
+                
+                openAppStore() {
+                    window.open(this.appStoreUrl, '_blank');
+                },
+                
+                copyAppStoreUrl() {
+                    navigator.clipboard.writeText(window.location.origin + this.appStoreUrl).then(() => {
+                        alert('应用商店链接已复制到剪贴板');
+                    }).catch(() => {
+                        alert('复制失败，请手动复制：' + this.appStoreUrl);
+                    });
+                },
+                
+                async testDownload() {
+                    this.testingDownload = true;
+                    try {
+                        // 测试获取插件列表
+                        const response = await fetch('/api/plugins/plugin_manager/plugins/search');
+                        const data = await response.json();
+                        
+                        this.downloadTestResult = `找到 ${data.plugins.length} 个插件\n` + 
+                                                 `失败仓库: ${data.failed_repositories || '无'}\n` +
+                                                 JSON.stringify(data, null, 2);
+                    } catch (error) {
+                        this.downloadTestResult = `测试失败: ${error.message}`;
+                    } finally {
+                        this.testingDownload = false;
+                    }
+                }
+            },
+            
+            async mounted() {
+                console.log('菜单调试页面已加载');
+                await this.checkPluginStatus();
+                await this.checkManifest();
+            }
+        }).use(vuetify).mount('#app');
+    </script>
+</body>
+</html>

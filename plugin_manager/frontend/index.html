@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>插件管理器 - 应用商店</title>
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css" rel="stylesheet">
+    <style>
+        /* NotifyHub统一风格样式 */
+        body {
+            background-color: #FAFAFA;
+            font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(250, 250, 250, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .error-display {
+            background: #FFEBEE;
+            border: 1px solid #F44336;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .stat-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .plugin-card {
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .plugin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* NotifyHub风格的容器 */
+        .v-container {
+            max-width: 1200px;
+        }
+        
+        /* 统一的卡片样式 */
+        .v-card {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* 统一的按钮样式 */
+        .v-btn {
+            border-radius: 6px;
+            text-transform: none;
+            font-weight: 500;
+        }
+        
+        /* 统一的输入框样式 */
+        .v-text-field .v-field {
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <!-- 加载遮罩 -->
+            <div v-if="loading" class="loading-overlay">
+                <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+                <div class="ml-4">
+                    <h3>正在加载...</h3>
+                    <p>{{ loadingMessage }}</p>
+                </div>
+            </div>
+
+            <!-- 错误显示 -->
+            <div v-if="errorMessage" class="error-display">
+                <h3>❌ 加载错误</h3>
+                <p>{{ errorMessage }}</p>
+                <v-btn @click="retryLoad" color="primary" size="small">重试</v-btn>
+            </div>
+
+            <!-- 主要内容 -->
+            <div v-if="!loading && !errorMessage">
+                <!-- 顶部导航 -->
+                <v-app-bar color="primary" dark>
+                    <v-app-bar-title>
+                        <v-icon class="mr-2">mdi-store</v-icon>
+                        应用商店
+                    </v-app-bar-title>
+                    <v-spacer></v-spacer>
+                    <v-btn icon @click="showSettings = true">
+                        <v-icon>mdi-cog</v-icon>
+                    </v-btn>
+                    <v-btn icon @click="showAddRepository = true">
+                        <v-icon>mdi-plus</v-icon>
+                    </v-btn>
+                </v-app-bar>
+
+                <!-- 主要内容 -->
+                <v-main>
+                    <v-container fluid>
+                        <!-- 欢迎信息 -->
+                        <v-row class="mb-6">
+                            <v-col cols="12">
+                                <v-alert type="info" variant="tonal" class="mb-4">
+                                    <template v-slot:prepend>
+                                        <v-icon>mdi-information</v-icon>
+                                    </template>
+                                    <div class="text-h6 mb-2">欢迎使用应用商店</div>
+                                    <div>在这里您可以浏览、安装和管理各种插件，扩展NotifyHub的功能。</div>
+                                </v-alert>
+                            </v-col>
+                        </v-row>
+
+                        <!-- 统计信息 -->
+                        <v-row class="mb-6">
+                            <v-col cols="12" sm="6" md="3">
+                                <v-card class="stat-card" elevation="2">
+                                    <v-card-text class="text-center pa-4">
+                                        <v-icon size="48" class="mb-2" color="primary">mdi-puzzle</v-icon>
+                                        <div class="text-h3 font-weight-bold text-primary">{{ stats.totalPlugins }}</div>
+                                        <div class="text-subtitle-1 text-grey-darken-1">总插件数</div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" sm="6" md="3">
+                                <v-card class="stat-card" elevation="2">
+                                    <v-card-text class="text-center pa-4">
+                                        <v-icon size="48" class="mb-2" color="success">mdi-check-circle</v-icon>
+                                        <div class="text-h3 font-weight-bold text-success">{{ stats.installedPlugins }}</div>
+                                        <div class="text-subtitle-1 text-grey-darken-1">已安装</div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" sm="6" md="3">
+                                <v-card class="stat-card" elevation="2">
+                                    <v-card-text class="text-center pa-4">
+                                        <v-icon size="48" class="mb-2" color="info">mdi-database</v-icon>
+                                        <div class="text-h3 font-weight-bold text-info">{{ stats.repositories }}</div>
+                                        <div class="text-subtitle-1 text-grey-darken-1">仓库数</div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                            <v-col cols="12" sm="6" md="3">
+                                <v-card class="stat-card" elevation="2">
+                                    <v-card-text class="text-center pa-4">
+                                        <v-icon size="48" class="mb-2" color="warning">mdi-update</v-icon>
+                                        <div class="text-h3 font-weight-bold text-warning">{{ stats.updatesAvailable }}</div>
+                                        <div class="text-subtitle-1 text-grey-darken-1">可更新</div>
+                                    </v-card-text>
+                                </v-card>
+                            </v-col>
+                        </v-row>
+
+                        <!-- 标签页 -->
+                        <v-tabs v-model="activeTab" class="mb-4">
+                            <v-tab value="market">应用商店</v-tab>
+                            <v-tab value="installed">已安装</v-tab>
+                            <v-tab value="repositories">仓库管理</v-tab>
+                            <v-tab value="backups">备份管理</v-tab>
+                        </v-tabs>
+
+                        <v-tabs-window v-model="activeTab">
+                            <!-- 应用商店 -->
+                            <v-tabs-window-item value="market">
+                                <div v-if="marketPlugins.length === 0" class="text-center py-8">
+                                    <v-icon size="64" color="grey">mdi-package-variant</v-icon>
+                                    <h3 class="mt-4">暂无插件</h3>
+                                    <p class="text-grey">请检查网络连接或仓库配置</p>
+                                    <v-btn @click="refreshData" color="primary" class="mt-4">刷新数据</v-btn>
+                                </div>
+                                <v-row v-else>
+                                    <v-col v-for="plugin in marketPlugins" :key="plugin.id" cols="12" sm="6" md="4" lg="3">
+                                        <v-card class="plugin-card" elevation="2">
+                                            <v-card-title class="d-flex align-center">
+                                                <v-icon class="mr-2" color="primary">mdi-puzzle</v-icon>
+                                                <span class="text-h6">{{ plugin.name }}</span>
+                                            </v-card-title>
+                                            <v-card-subtitle class="text-body-2 mb-2">
+                                                {{ plugin.description }}
+                                            </v-card-subtitle>
+                                            <v-card-text class="pt-0">
+                                                <v-chip size="small" color="info" variant="tonal" class="mr-2 mb-1">
+                                                    <v-icon start>mdi-tag</v-icon>
+                                                    {{ plugin.version }}
+                                                </v-chip>
+                                                <v-chip size="small" color="secondary" variant="tonal" class="mb-1">
+                                                    <v-icon start>mdi-account</v-icon>
+                                                    {{ plugin.author }}
+                                                </v-chip>
+                                            </v-card-text>
+                                            <v-card-actions class="pt-0">
+                                                <v-btn 
+                                                    v-if="!plugin.installed" 
+                                                    @click="installPlugin(plugin)" 
+                                                    color="primary" 
+                                                    variant="elevated"
+                                                    :loading="installingPlugins.includes(plugin.id)"
+                                                    block
+                                                >
+                                                    <v-icon start>mdi-download</v-icon>
+                                                    安装
+                                                </v-btn>
+                                                <v-btn 
+                                                    v-else 
+                                                    @click="uninstallPlugin(plugin)" 
+                                                    color="error" 
+                                                    variant="elevated"
+                                                    block
+                                                >
+                                                    <v-icon start>mdi-delete</v-icon>
+                                                    卸载
+                                                </v-btn>
+                                            </v-card-actions>
+                                        </v-card>
+                                    </v-col>
+                                </v-row>
+                            </v-tabs-window-item>
+
+                            <!-- 已安装 -->
+                            <v-tabs-window-item value="installed">
+                                <v-data-table
+                                    :headers="installedHeaders"
+                                    :items="installedPlugins"
+                                    :items-per-page="10"
+                                    class="elevation-1"
+                                    rounded
+                                >
+                                    <template v-slot:item.name="{ item }">
+                                        <div class="d-flex align-center">
+                                            <v-icon class="mr-2" color="success">mdi-check-circle</v-icon>
+                                            <span class="font-weight-medium">{{ item.name }}</span>
+                                        </div>
+                                    </template>
+                                    <template v-slot:item.version="{ item }">
+                                        <v-chip size="small" color="info" variant="tonal">
+                                            {{ item.version }}
+                                        </v-chip>
+                                    </template>
+                                    <template v-slot:item.author="{ item }">
+                                        <v-chip size="small" color="secondary" variant="tonal">
+                                            {{ item.author }}
+                                        </v-chip>
+                                    </template>
+                                    <template v-slot:item.actions="{ item }">
+                                        <v-btn 
+                                            @click="uninstallPlugin(item)" 
+                                            color="error" 
+                                            variant="elevated"
+                                            size="small"
+                                        >
+                                            <v-icon start>mdi-delete</v-icon>
+                                            卸载
+                                        </v-btn>
+                                    </template>
+                                </v-data-table>
+                            </v-tabs-window-item>
+
+                            <!-- 仓库管理 -->
+                            <v-tabs-window-item value="repositories">
+                                <v-data-table
+                                    :headers="repositoryHeaders"
+                                    :items="repositories"
+                                    :items-per-page="10"
+                                    class="elevation-1"
+                                    rounded
+                                >
+                                    <template v-slot:item.name="{ item }">
+                                        <div class="d-flex align-center">
+                                            <v-icon class="mr-2" color="info">mdi-database</v-icon>
+                                            <span class="font-weight-medium">{{ item.name }}</span>
+                                        </div>
+                                    </template>
+                                    <template v-slot:item.enabled="{ item }">
+                                        <v-switch
+                                            v-model="item.enabled"
+                                            @change="updateRepository(item)"
+                                            color="success"
+                                            hide-details
+                                        ></v-switch>
+                                    </template>
+                                    <template v-slot:item.actions="{ item }">
+                                        <v-btn 
+                                            @click="editRepository(item)" 
+                                            color="primary" 
+                                            variant="elevated"
+                                            size="small" 
+                                            class="mr-2"
+                                        >
+                                            <v-icon start>mdi-pencil</v-icon>
+                                            编辑
+                                        </v-btn>
+                                        <v-btn 
+                                            @click="deleteRepository(item)" 
+                                            color="error" 
+                                            variant="elevated"
+                                            size="small"
+                                        >
+                                            <v-icon start>mdi-delete</v-icon>
+                                            删除
+                                        </v-btn>
+                                    </template>
+                                </v-data-table>
+                            </v-tabs-window-item>
+
+                            <!-- 备份管理 -->
+                            <v-tabs-window-item value="backups">
+                                <v-select
+                                    v-model="selectedPluginForBackup"
+                                    :items="installedPlugins"
+                                    item-title="name"
+                                    item-value="id"
+                                    label="选择插件"
+                                    class="mb-4"
+                                ></v-select>
+                                
+                                <div v-if="selectedPluginForBackup">
+                                    <v-btn @click="createBackup" color="primary" class="mb-4">创建备份</v-btn>
+                                    
+                                    <v-data-table
+                                        :headers="backupHeaders"
+                                        :items="pluginBackups"
+                                        :items-per-page="10"
+                                        class="elevation-1"
+                                        rounded
+                                    >
+                                        <template v-slot:item.filename="{ item }">
+                                            <div class="d-flex align-center">
+                                                <v-icon class="mr-2" color="primary">mdi-archive</v-icon>
+                                                <span class="font-weight-medium">{{ item.filename }}</span>
+                                            </div>
+                                        </template>
+                                        <template v-slot:item.size="{ item }">
+                                            <v-chip size="small" color="info" variant="tonal">
+                                                {{ formatFileSize(item.size) }}
+                                            </v-chip>
+                                        </template>
+                                        <template v-slot:item.created="{ item }">
+                                            <span class="text-caption">{{ formatDate(item.created) }}</span>
+                                        </template>
+                                        <template v-slot:item.actions="{ item }">
+                                            <v-btn 
+                                                @click="restoreBackup(item)" 
+                                                color="success" 
+                                                variant="elevated"
+                                                size="small" 
+                                                class="mr-2"
+                                            >
+                                                <v-icon start>mdi-restore</v-icon>
+                                                恢复
+                                            </v-btn>
+                                            <v-btn 
+                                                @click="deleteBackup(item)" 
+                                                color="error" 
+                                                variant="elevated"
+                                                size="small"
+                                            >
+                                                <v-icon start>mdi-delete</v-icon>
+                                                删除
+                                            </v-btn>
+                                        </template>
+                                    </v-data-table>
+                                </div>
+                            </v-tabs-window-item>
+                        </v-tabs-window>
+                    </v-container>
+                </v-main>
+            </div>
+        </v-app>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.8/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.0/dist/vuetify.min.js"></script>
+    <script>
+        console.log('开始加载应用商店...');
+        
+        const { createApp } = Vue;
+        const { createVuetify } = Vuetify;
+
+        const vuetify = createVuetify({
+            theme: {
+                defaultTheme: 'light',
+                themes: {
+                    light: {
+                        colors: {
+                            primary: '#1976D2',
+                            secondary: '#424242',
+                            accent: '#82B1FF',
+                            error: '#FF5252',
+                            info: '#2196F3',
+                            success: '#4CAF50',
+                            warning: '#FFC107'
+                        }
+                    }
+                }
+            }
+        });
+
+        createApp({
+            data() {
+                return {
+                    // 基本状态
+                    loading: true,
+                    loadingMessage: '正在初始化...',
+                    errorMessage: '',
+                    activeTab: 'market',
+                    
+                    // 搜索和筛选
+                    searchQuery: '',
+                    selectedRepository: null,
+                    selectedCategory: null,
+                    
+                    // 数据
+                    marketPlugins: [],
+                    installedPlugins: [],
+                    repositories: [],
+                    pluginBackups: [],
+                    
+                    // 统计信息
+                    stats: {
+                        totalPlugins: 0,
+                        installedPlugins: 0,
+                        repositories: 0,
+                        updatesAvailable: 0
+                    },
+                    
+                    // 对话框状态
+                    showSettings: false,
+                    showAddRepository: false,
+                    
+                    // 其他状态
+                    installingPlugins: [],
+                    selectedPluginForBackup: null,
+                    
+                    // 表格头部
+                    installedHeaders: [
+                        { title: '名称', key: 'name' },
+                        { title: '版本', key: 'version' },
+                        { title: '作者', key: 'author' },
+                        { title: '安装时间', key: 'installed_at' },
+                        { title: '操作', key: 'actions', sortable: false }
+                    ],
+                    repositoryHeaders: [
+                        { title: '名称', key: 'name' },
+                        { title: 'URL', key: 'url' },
+                        { title: '启用', key: 'enabled' },
+                        { title: '操作', key: 'actions', sortable: false }
+                    ],
+                    backupHeaders: [
+                        { title: '文件名', key: 'filename' },
+                        { title: '大小', key: 'size' },
+                        { title: '创建时间', key: 'created_at' },
+                        { title: '操作', key: 'actions', sortable: false }
+                    ]
+                }
+            },
+            
+            computed: {
+                repositoryOptions() {
+                    return this.repositories.map(repo => ({
+                        title: repo.name,
+                        value: repo.id
+                    }));
+                },
+                
+                categoryOptions() {
+                    const categories = [...new Set(this.marketPlugins.map(p => p.category))];
+                    return categories.map(cat => ({
+                        title: cat,
+                        value: cat
+                    }));
+                }
+            },
+            
+            async mounted() {
+                console.log('Vue应用已挂载，开始初始化...');
+                await this.initializeApp();
+            },
+            
+            methods: {
+                async initializeApp() {
+                    this.loading = true;
+                    this.loadingMessage = '正在初始化...';
+                    this.errorMessage = '';
+                    
+                    try {
+                        console.log('开始加载数据...');
+                        
+                        // 逐步加载数据
+                        this.loadingMessage = '正在加载设置...';
+                        await this.loadSettings();
+                        
+                        this.loadingMessage = '正在加载仓库...';
+                        await this.loadRepositories();
+                        
+                        this.loadingMessage = '正在加载已安装插件...';
+                        await this.loadInstalledPlugins();
+                        
+                        this.loadingMessage = '正在加载市场插件...';
+                        await this.loadMarketPlugins();
+                        
+                        this.loadingMessage = '正在计算统计信息...';
+                        this.loadStats();
+                        
+                        console.log('初始化完成');
+                        this.loading = false;
+                        
+                    } catch (error) {
+                        console.error('初始化失败:', error);
+                        this.errorMessage = `初始化失败: ${error.message}`;
+                        this.loading = false;
+                    }
+                },
+                
+                async loadSettings() {
+                    try {
+                        const response = await this.apiRequest('/status');
+                        console.log('设置加载成功:', response);
+                    } catch (error) {
+                        console.error('加载设置失败:', error);
+                        throw error;
+                    }
+                },
+                
+                async loadRepositories() {
+                    try {
+                        const response = await this.apiRequest('/repositories');
+                        this.repositories = response.repositories || [];
+                        console.log('仓库加载成功:', this.repositories.length);
+                    } catch (error) {
+                        console.error('加载仓库失败:', error);
+                        throw error;
+                    }
+                },
+                
+                async loadInstalledPlugins() {
+                    try {
+                        const response = await this.apiRequest('/installed');
+                        this.installedPlugins = response.plugins || [];
+                        console.log('已安装插件加载成功:', this.installedPlugins.length);
+                    } catch (error) {
+                        console.error('加载已安装插件失败:', error);
+                        throw error;
+                    }
+                },
+                
+                async loadMarketPlugins() {
+                    try {
+                        const params = new URLSearchParams();
+                        if (this.searchQuery) params.append('query', this.searchQuery);
+                        if (this.selectedRepository) params.append('repository_id', this.selectedRepository);
+                        if (this.selectedCategory) params.append('category', this.selectedCategory);
+                        
+                        const response = await this.apiRequest('/plugins/search?' + params.toString());
+                        this.marketPlugins = response.plugins || [];
+                        console.log('市场插件加载成功:', this.marketPlugins.length);
+                    } catch (error) {
+                        console.error('加载市场插件失败:', error);
+                        throw error;
+                    }
+                },
+                
+                loadStats() {
+                    this.stats = {
+                        totalPlugins: this.marketPlugins.length,
+                        installedPlugins: this.installedPlugins.length,
+                        repositories: this.repositories.length,
+                        updatesAvailable: this.marketPlugins.filter(p => p.can_update).length
+                    };
+                },
+                
+                searchPlugins() {
+                    this.debounce(() => {
+                        this.loadMarketPlugins().then(() => {
+                            this.loadStats();
+                        });
+                    }, 300);
+                },
+                
+                async installPlugin(plugin) {
+                    if (this.installingPlugins.includes(plugin.id)) return;
+                    
+                    this.installingPlugins.push(plugin.id);
+                    try {
+                        await this.apiRequest('/plugins/install', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                plugin_id: plugin.id,
+                                repository_id: plugin.repository_id
+                            })
+                        });
+                        
+                        plugin.installed = true;
+                        await this.loadInstalledPlugins();
+                        this.loadStats();
+                        
+                    } catch (error) {
+                        console.error('安装插件失败:', error);
+                        alert('安装插件失败: ' + error.message);
+                    } finally {
+                        this.installingPlugins = this.installingPlugins.filter(id => id !== plugin.id);
+                    }
+                },
+                
+                async uninstallPlugin(plugin) {
+                    if (!confirm(`确定要卸载插件 "${plugin.name}" 吗？`)) return;
+                    
+                    try {
+                        await this.apiRequest(`/plugins/${plugin.id}`, { method: 'DELETE' });
+                        await this.loadInstalledPlugins();
+                        this.loadMarketPlugins();
+                        this.loadStats();
+                        
+                    } catch (error) {
+                        console.error('卸载插件失败:', error);
+                        alert('卸载插件失败: ' + error.message);
+                    }
+                },
+                
+                async updateRepository(repo) {
+                    try {
+                        await this.apiRequest(`/repositories/${repo.id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify(repo)
+                        });
+                    } catch (error) {
+                        console.error('更新仓库失败:', error);
+                        repo.enabled = !repo.enabled; // 恢复原状态
+                        alert('更新仓库失败: ' + error.message);
+                    }
+                },
+                
+                async deleteRepository(repo) {
+                    if (!confirm(`确定要删除仓库 "${repo.name}" 吗？`)) return;
+                    
+                    try {
+                        await this.apiRequest(`/repositories/${repo.id}`, { method: 'DELETE' });
+                        await this.loadRepositories();
+                    } catch (error) {
+                        console.error('删除仓库失败:', error);
+                        alert('删除仓库失败: ' + error.message);
+                    }
+                },
+                
+                editRepository(repo) {
+                    // 简化版本，直接提示
+                    alert('编辑功能暂未实现');
+                },
+                
+                async createBackup() {
+                    if (!this.selectedPluginForBackup) return;
+                    
+                    try {
+                        await this.apiRequest('/backups', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                plugin_id: this.selectedPluginForBackup,
+                                backup_name: `backup_${Date.now()}`
+                            })
+                        });
+                        
+                        await this.loadPluginBackups(this.selectedPluginForBackup);
+                    } catch (error) {
+                        console.error('创建备份失败:', error);
+                        alert('创建备份失败: ' + error.message);
+                    }
+                },
+                
+                async loadPluginBackups(pluginId) {
+                    try {
+                        const response = await this.apiRequest(`/backups?plugin_id=${pluginId}`);
+                        this.pluginBackups = response.backups || [];
+                    } catch (error) {
+                        console.error('加载备份列表失败:', error);
+                    }
+                },
+                
+                async restoreBackup(backup) {
+                    if (!confirm(`确定要恢复备份 "${backup.filename}" 吗？`)) return;
+                    
+                    try {
+                        await this.apiRequest('/backups/restore', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                plugin_id: this.selectedPluginForBackup,
+                                backup_file: backup.filename
+                            })
+                        });
+                        
+                        await this.loadInstalledPlugins();
+                    } catch (error) {
+                        console.error('恢复备份失败:', error);
+                        alert('恢复备份失败: ' + error.message);
+                    }
+                },
+                
+                async deleteBackup(backup) {
+                    if (!confirm(`确定要删除备份 "${backup.filename}" 吗？`)) return;
+                    
+                    try {
+                        await this.apiRequest(`/backups/${this.selectedPluginForBackup}/${backup.filename}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        await this.loadPluginBackups(this.selectedPluginForBackup);
+                    } catch (error) {
+                        console.error('删除备份失败:', error);
+                        alert('删除备份失败: ' + error.message);
+                    }
+                },
+                
+                async refreshData() {
+                    await this.initializeApp();
+                },
+                
+                retryLoad() {
+                    this.initializeApp();
+                },
+                
+                // 工具方法
+                async apiRequest(endpoint, options = {}) {
+                    const url = `/api/plugins/plugin_manager${endpoint}`;
+                    const config = {
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        ...options
+                    };
+                    
+                    const response = await fetch(url, config);
+                    
+                    if (!response.ok) {
+                        const error = await response.json().catch(() => ({ detail: '请求失败' }));
+                        throw new Error(error.detail || `HTTP ${response.status}`);
+                    }
+                    
+                    return await response.json();
+                },
+                
+                debounce(func, wait) {
+                    clearTimeout(this.debounceTimer);
+                    this.debounceTimer = setTimeout(func, wait);
+                }
+            }
+        }).use(vuetify).mount('#app');
+        
+        console.log('应用商店加载完成');
+    </script>
+</body>
+</html>
