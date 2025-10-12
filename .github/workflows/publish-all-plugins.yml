@@ -1,0 +1,136 @@
+name: 发布所有插件包
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_publish:
+        description: '确认发布所有插件包'
+        required: true
+        default: 'false'
+        type: boolean
+
+jobs:
+  publish-plugins:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: 运行打包脚本
+      run: |
+        python package_plugins.py
+        
+    - name: 检查打包结果
+      run: |
+        echo "检查打包文件:"
+        ls -la packages/
+        echo "打包文件数量:"
+        ls packages/*.zip | wc -l
+        
+    - name: 发布所有插件包
+      if: inputs.confirm_publish == true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "开始发布所有插件包..."
+        
+        plugins=("pill_reminder" "plugin_manager" "qq_bridge" "syno_chat_webhook" "wx_metube")
+        
+        for plugin in "${plugins[@]}"; do
+          echo "处理插件: $plugin"
+          
+          # 查找对应的zip文件
+          zip_file=$(ls packages/${plugin}_*.zip | head -1)
+          
+          if [ -f "$zip_file" ]; then
+            # 获取插件信息
+            if [ -f "${plugin}/manifest.json" ]; then
+              plugin_name=$(cat ${plugin}/manifest.json | jq -r '.name // "'$plugin'"')
+              plugin_version=$(cat ${plugin}/manifest.json | jq -r '.version // "1.0.0"')
+              plugin_desc=$(cat ${plugin}/manifest.json | jq -r '.description // "无描述"')
+            else
+              plugin_name="$plugin"
+              plugin_version="1.0.0"
+              plugin_desc="无描述"
+            fi
+            
+            # 创建版本标签
+            timestamp=$(date +"%Y.%m.%d")
+            tag_name="plugin-${plugin}-${timestamp}"
+            
+            # 创建Release标题和描述
+            title="${plugin_name} v${plugin_version}"
+            description="自动发布的 ${plugin} 插件包
+
+**插件信息:**
+- 名称: ${plugin_name}
+- 版本: ${plugin_version}
+- 描述: ${plugin_desc}
+- 更新时间: $(date)
+
+**安装说明:**
+1. 下载zip文件
+2. 解压到NotifyHub的plugins目录
+3. 重启NotifyHub服务
+4. 在插件管理中启用插件
+
+**注意事项:**
+- 请确保NotifyHub版本兼容
+- 安装前请备份现有配置
+- 如有问题请提交Issue反馈"
+            
+            # 创建Release
+            gh release create "$tag_name" "$zip_file" \
+              --title "$title" \
+              --notes "$description"
+            
+            echo "✅ $plugin 发布完成: $tag_name"
+          else
+            echo "❌ 找不到 $plugin 的打包文件"
+          fi
+          
+          echo "---"
+        done
+        
+        echo "🎉 所有插件发布完成!"
+        
+    - name: 上传打包文件到Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: plugin-packages-$(date +%Y%m%d)
+        path: packages/*.zip
+        retention-days: 30
+        
+    - name: 创建发布总结
+      run: |
+        echo "# 📦 插件发布总结" >> RELEASE_SUMMARY.md
+        echo "" >> RELEASE_SUMMARY.md
+        echo "发布时间: $(date)" >> RELEASE_SUMMARY.md
+        echo "仓库地址: https://github.com/${{ github.repository }}" >> RELEASE_SUMMARY.md
+        echo "" >> RELEASE_SUMMARY.md
+        echo "## 发布的插件包" >> RELEASE_SUMMARY.md
+        echo "" >> RELEASE_SUMMARY.md
+        echo "| 插件名称 | 文件名 | 大小 | 状态 |" >> RELEASE_SUMMARY.md
+        echo "|---------|--------|------|------|" >> RELEASE_SUMMARY.md
+        
+        for zip_file in packages/*.zip; do
+          if [ -f "$zip_file" ]; then
+            filename=$(basename "$zip_file")
+            plugin_name=$(echo "$filename" | cut -d'_' -f1)
+            size=$(du -h "$zip_file" | cut -f1)
+            echo "| $plugin_name | $filename | $size | ✅ 已发布 |" >> RELEASE_SUMMARY.md
+          fi
+        done
+        
+        echo "" >> RELEASE_SUMMARY.md
+        echo "## 下载链接" >> RELEASE_SUMMARY.md
+        echo "" >> RELEASE_SUMMARY.md
+        echo "所有插件包已发布到: https://github.com/${{ github.repository }}/releases" >> RELEASE_SUMMARY.md
+        
+        cat RELEASE_SUMMARY.md
