@@ -1,0 +1,8 @@
+-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIPRYOcxAHb1e9Ae+jHs6aPBmVE25Enm2ZsoY5JotweVd
+-----END PRIVATE KEY-----
+
+C:\Users\Administrator>type ed25519-public.pem
+-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAeiDSCo99N8c76wiWXXniv+yzsmuPjVHxq9WBx1e1eMc=
+-----END PUBLIC KEY-----

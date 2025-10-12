@@ -1,0 +1,95 @@
+{
+  "id": "plugin_manager",
+  "name": "插件管理器",
+  "description": "便于插件查看与下载",
+  "author": "NotifyHub",
+  "logo": "https://img.icons8.com/color/48/000000/store.png",
+  "thumbnailurl": "https://img.icons8.com/color/48/000000/store.png",
+  "version": "1.0.0",
+  "documentation": "",
+  "path": "/plugin_manager",
+  "configField": [
+    {
+      "fieldName": "proxy_enabled",
+      "fieldType": "switch",
+      "label": "启用网络代理",
+      "helpText": "是否启用网络代理进行插件下载",
+      "defaultValue": false
+    },
+    {
+      "fieldName": "proxy_url",
+      "fieldType": "string",
+      "label": "代理地址",
+      "helpText": "代理服务器地址，如：http://192.168.0.250:7890",
+      "defaultValue": "http://127.0.0.1:7890",
+      "required": false,
+      "conditional": {
+        "field": "proxy_enabled",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "fieldName": "custom_repository_urls",
+      "fieldType": "string",
+      "label": "自定义仓库地址",
+      "helpText": "自定义仓库的URL地址，多个地址用逗号分隔，如：https://repo1.com/repo.json,https://repo2.com/repo.json",
+      "defaultValue": "",
+      "required": false
+    },
+    {
+      "fieldName": "auto_check_updates",
+      "fieldType": "switch",
+      "label": "自动检查更新",
+      "helpText": "是否自动检查插件更新",
+      "defaultValue": true
+    },
+    {
+      "fieldName": "backup_retention_days",
+      "fieldType": "string",
+      "label": "备份保留天数",
+      "helpText": "插件备份文件保留天数，0表示永久保留",
+      "defaultValue": "30"
+    },
+    {
+      "fieldName": "notification_channel",
+      "fieldType": "string",
+      "label": "通知渠道",
+      "helpText": "插件安装完成后的通知渠道名称",
+      "defaultValue": "default",
+      "required": false
+    }
+  ],
+  "helpTextField": [
+    {
+      "fieldType": "title",
+      "value": "插件管理器使用说明"
+    },
+    {
+      "fieldType": "text",
+      "value": "插件管理器主要功能：\n\n• 代理设置：支持HTTP代理下载插件\n• 浏览插件：查看可用插件列表\n• 下载安装：一键下载和安装插件"
+    },
+    {
+      "fieldType": "title",
+      "value": "重要提示"
+    },
+    {
+      "fieldType": "text",
+      "value": "⚠️ 安装或更新插件后，需要重启NotifyHub服务才能生效！\n\n重启方法：\n1. 在插件管理器中点击\"重启NotifyHub\"按钮\n2. 或手动重启NotifyHub服务\n3. 重启后新插件将出现在左侧菜单中"
+    },
+    {
+      "fieldType": "title",
+      "value": "作者说明"
+    },
+    {
+      "fieldType": "text",
+      "value": "本人本着\"又不是不能用\"的原则，反正是有了，好看这种事完全整不了一点 😅"
+    }
+  ],
+  "frontend_page": {
+    "name": "应用商店",
+    "icon": "mdi:store",
+    "path": "/common/view?hidePadding=true#/api/plugins/plugin_manager/frontend/index.html",
+    "add_to_menu": true
+  }
+}

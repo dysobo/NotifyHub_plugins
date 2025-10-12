@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>插件管理器入口测试</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .container {
+            background: rgba(255,255,255,0.95);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #1976D2;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .status-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .status-card.success {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .status-card.error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        .status-card.info {
+            border-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        .status-icon {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 2em;
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #1976D2, #42A5F5);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+            color: white;
+        }
+        .button.secondary {
+            background: linear-gradient(45deg, #424242, #757575);
+            box-shadow: 0 4px 15px rgba(66, 66, 66, 0.3);
+        }
+        .button.secondary:hover {
+            box-shadow: 0 6px 20px rgba(66, 66, 66, 0.4);
+        }
+        .steps {
+            background: #e3f2fd;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #1976D2;
+        }
+        .steps h3 {
+            color: #1976D2;
+            margin-top: 0;
+        }
+        .steps ol {
+            margin: 0;
+            padding-left: 25px;
+        }
+        .steps li {
+            margin: 12px 0;
+            line-height: 1.6;
+        }
+        .test-result {
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .test-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 插件管理器入口测试</h1>
+            <p style="font-size: 1.2em; color: #666;">测试插件安装状态和访问入口</p>
+        </div>
+
+        <div class="status-card success">
+            <span class="status-icon">✅</span>
+            <h3>插件安装状态</h3>
+            <p>如果您能看到这个页面，说明插件管理器前端文件已正确安装并可访问。</p>
+            <div class="test-result test-success">
+                ✅ 前端文件访问正常
+            </div>
+        </div>
+
+        <div class="status-card info">
+            <span class="status-icon">📋</span>
+            <h3>如何进入应用商店</h3>
+            <div class="steps">
+                <h3>方法1：通过插件页面菜单（推荐）</h3>
+                <ol>
+                    <li>在左侧菜单中点击 <span class="highlight">"插件"</span></li>
+                    <li>点击 <span class="highlight">"插件页面"</span> 子菜单</li>
+                    <li>找到 <span class="highlight">"应用商店"</span> 卡片并点击</li>
+                </ol>
+                
+                <h3>方法2：通过插件列表</h3>
+                <ol>
+                    <li>在左侧菜单中点击 <span class="highlight">"插件"</span></li>
+                    <li>在插件列表中找到 <span class="highlight">"插件管理器"</span></li>
+                    <li>点击进入插件管理器</li>
+                </ol>
+                
+                <h3>方法3：直接访问URL</h3>
+                <ol>
+                    <li>在浏览器地址栏输入完整URL</li>
+                    <li>或点击下面的链接</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="status-card info">
+            <span class="status-icon">🧪</span>
+            <h3>API连接测试</h3>
+            <p>测试插件管理器后端API是否正常工作：</p>
+            <div id="apiTestResult" class="test-result test-info">
+                🔄 正在测试API连接...
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 40px 0;">
+            <a href="index.html" class="button">🚀 进入应用商店</a>
+            <a href="test.html" class="button secondary">🔍 详细测试页面</a>
+            <a href="../manifest.json" class="button secondary" target="_blank">📄 查看插件配置</a>
+        </div>
+
+        <div class="status-card error">
+            <span class="status-icon">⚠️</span>
+            <h3>如果找不到入口怎么办？</h3>
+            <div class="steps">
+                <h3>检查清单：</h3>
+                <ol>
+                    <li><strong>插件是否启用</strong>：在插件配置页面确认"插件管理器"已启用</li>
+                    <li><strong>刷新页面</strong>：按F5或Ctrl+F5刷新浏览器页面</li>
+                    <li><strong>清除缓存</strong>：清除浏览器缓存和Cookie</li>
+                    <li><strong>检查版本</strong>：确认NotifyHub版本支持插件前端页面功能</li>
+                    <li><strong>查看控制台</strong>：按F12打开开发者工具，查看Console是否有错误</li>
+                    <li><strong>重启服务</strong>：重启NotifyHub服务</li>
+                </ol>
+                
+                <h3>常见问题：</h3>
+                <ul>
+                    <li><strong>菜单中没有"插件页面"</strong>：NotifyHub版本可能不支持前端页面功能</li>
+                    <li><strong>点击后显示空白页</strong>：检查浏览器控制台错误信息</li>
+                    <li><strong>API测试失败</strong>：插件后端可能未正确加载</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>插件管理器 v1.0.0</strong> | NotifyHub 插件应用商店</p>
+            <p>如果您遇到问题，请检查NotifyHub的插件开发文档或联系技术支持</p>
+        </div>
+    </div>
+
+    <script>
+        // API连接测试
+        async function testAPI() {
+            const resultDiv = document.getElementById('apiTestResult');
+            
+            try {
+                // 测试状态API
+                const response = await fetch('/api/plugins/plugin_manager/status');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.className = 'test-result test-success';
+                    resultDiv.innerHTML = `
+                        ✅ API连接正常<br>
+                        📊 仓库数量: ${data.repositories_count}<br>
+                        📦 已安装插件: ${data.installed_plugins_count}<br>
+                        🌐 代理状态: ${data.proxy_enabled ? '已启用' : '未启用'}
+                    `;
+                } else {
+                    resultDiv.className = 'test-result test-error';
+                    resultDiv.innerHTML = `❌ API响应异常: HTTP ${response.status}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'test-result test-error';
+                resultDiv.innerHTML = `❌ 无法连接到API: ${error.message}`;
+            }
+        }
+        
+        // 页面加载时测试API
+        document.addEventListener('DOMContentLoaded', function() {
+            testAPI();
+        });
+        
+        // 添加一些交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.button');
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1019 @@
+{
+  "id": "pill_reminder",
+  "name": "用药提醒",
+  "description": "每日定时发送用药提醒；可自定义用药量与图片，转发至内置渠道/通道",
+  "author": "dysobo",
+  "logo": "https://img.nanako.vip/api/img/file?path=%E8%B6%85%E7%94%B5%E7%A3%81%E7%82%AE/%E8%B6%85%E7%94%B5%E7%A3%81%E7%82%AE%E6%A8%AA%E5%B1%8F/9ca1576d-3471-4682-a630-dd2e61c16903.webp",
+  "thumbnailurl": "https://img.nanako.vip/api/img/file?path=%E8%B6%85%E7%94%B5%E7%A3%81%E7%82%AE/%E8%B6%85%E7%94%B5%E7%A3%81%E7%82%AE%E6%A8%AA%E5%B1%8F/9ca1576d-3471-4682-a630-dd2e61c16903.webp",
+  "version": "0.0.1",
+  "documentation": "",
+  "path": "/pill_reminder",
+  "background": "health",
+  "configField": [
+    {
+      "fieldName": "default_channel",
+      "fieldType": "enum",
+      "label": "默认发送渠道",
+      "enumValuesRef": "ChannelList",
+      "multiValue": false,
+      "helpText": "药品清单和未指定渠道的药品将发送到此渠道"
+    },
+    {
+      "fieldName": "reminder_schedule_type",
+      "fieldType": "select",
+      "label": "提醒计划类型",
+      "options": [
+        { "value": "daily", "label": "每日固定时间" },
+        { "value": "weekly", "label": "每周特定时间" },
+        { "value": "monthly", "label": "每月特定时间" },
+        { "value": "yearly", "label": "每年特定时间" },
+        { "value": "cron", "label": "高级 Cron 表达式" }
+      ],
+      "defaultValue": "daily",
+      "helpText": "选择提醒的时间模式，不同模式有不同的时间设置格式"
+    },
+    {
+      "fieldName": "daily_times",
+      "fieldType": "string",
+      "label": "每日提醒时间（逗号分隔，24h HH:MM）",
+      "helpText": "例如：08:00, 12:30, 20:45。注意：如果下方配置了用药时间段，此设置将被忽略",
+      "required": false,
+      "conditional": { "field": "reminder_schedule_type", "operator": "equals", "value": "daily" }
+    },
+    {
+      "fieldName": "weekly_times",
+      "fieldType": "string",
+      "label": "每周提醒时间（例：Mon 08:00, Wed 20:30）",
+      "helpText": "格式：星期 时间，星期可用 Mon/Tue/Wed/Thu/Fri/Sat/Sun",
+      "conditional": { "field": "reminder_schedule_type", "operator": "equals", "value": "weekly" }
+    },
+    {
+      "fieldName": "monthly_times",
+      "fieldType": "string",
+      "label": "每月提醒时间（例：15 09:00, 28 21:30）",
+      "helpText": "格式：日期 时间，日期范围 1-31",
+      "conditional": { "field": "reminder_schedule_type", "operator": "equals", "value": "monthly" }
+    },
+    {
+      "fieldName": "yearly_times",
+      "fieldType": "string",
+      "label": "每年提醒时间（例：05-01 10:00, 10-01 08:00）",
+      "helpText": "格式：月-日 时间，如 05-01 10:00",
+      "conditional": { "field": "reminder_schedule_type", "operator": "equals", "value": "yearly" }
+    },
+    {
+      "fieldName": "cron_expressions",
+      "fieldType": "string",
+      "label": "Cron 表达式（逗号分隔）",
+      "helpText": "支持标准五段 cron 表达式，如：30 7 * * 1, 0 20 * * *",
+      "conditional": { "field": "reminder_schedule_type", "operator": "equals", "value": "cron" }
+    },
+    {
+      "fieldName": "medicine_time_1",
+      "fieldType": "string",
+      "label": "用药时间1",
+      "helpText": "例如：08:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_1",
+      "fieldType": "string",
+      "label": "用药时间1名称",
+      "helpText": "例如：上午用药、早餐后用药等",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_1",
+      "fieldType": "string",
+      "label": "用药时间1-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]，例如：维生素C - 1片 [https://example.com/vitamin-c.jpg] [微信]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_2",
+      "fieldType": "string",
+      "label": "用药时间1-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_3",
+      "fieldType": "string",
+      "label": "用药时间1-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_4",
+      "fieldType": "string",
+      "label": "用药时间1-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_5",
+      "fieldType": "string",
+      "label": "用药时间1-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_6",
+      "fieldType": "string",
+      "label": "用药时间1-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_7",
+      "fieldType": "string",
+      "label": "用药时间1-药品7",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_8",
+      "fieldType": "string",
+      "label": "用药时间1-药品8",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_9",
+      "fieldType": "string",
+      "label": "用药时间1-药品9",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_1_10",
+      "fieldType": "string",
+      "label": "用药时间1-药品10",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_1", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_time_2",
+      "fieldType": "string",
+      "label": "用药时间2",
+      "helpText": "例如：12:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_2",
+      "fieldType": "string",
+      "label": "用药时间2名称",
+      "helpText": "例如：中午用药、午餐后用药等",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_1",
+      "fieldType": "string",
+      "label": "用药时间2-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_2",
+      "fieldType": "string",
+      "label": "用药时间2-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_3",
+      "fieldType": "string",
+      "label": "用药时间2-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_4",
+      "fieldType": "string",
+      "label": "用药时间2-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_5",
+      "fieldType": "string",
+      "label": "用药时间2-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_6",
+      "fieldType": "string",
+      "label": "用药时间2-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_7",
+      "fieldType": "string",
+      "label": "用药时间2-药品7",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_8",
+      "fieldType": "string",
+      "label": "用药时间2-药品8",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_9",
+      "fieldType": "string",
+      "label": "用药时间2-药品9",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_2_10",
+      "fieldType": "string",
+      "label": "用药时间2-药品10",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_2", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_time_3",
+      "fieldType": "string",
+      "label": "用药时间3",
+      "helpText": "例如：20:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_3",
+      "fieldType": "string",
+      "label": "用药时间3名称",
+      "helpText": "例如：晚上用药、晚餐后用药等",
+      "required": false,
+      "conditional": { "field": "medicine_time_3", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_3_1",
+      "fieldType": "string",
+      "label": "用药时间3-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_3", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_3_2",
+      "fieldType": "string",
+      "label": "用药时间3-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_3", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_3_3",
+      "fieldType": "string",
+      "label": "用药时间3-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_3", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_3_4",
+      "fieldType": "string",
+      "label": "用药时间3-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_3", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_3_5",
+      "fieldType": "string",
+      "label": "用药时间3-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_3", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_3_6",
+      "fieldType": "string",
+      "label": "用药时间3-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_3", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_time_4",
+      "fieldType": "string",
+      "label": "用药时间4",
+      "helpText": "例如：22:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_4",
+      "fieldType": "string",
+      "label": "用药时间4名称",
+      "helpText": "例如：睡前用药、睡前保健等",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_1",
+      "fieldType": "string",
+      "label": "用药时间4-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_2",
+      "fieldType": "string",
+      "label": "用药时间4-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_3",
+      "fieldType": "string",
+      "label": "用药时间4-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_4",
+      "fieldType": "string",
+      "label": "用药时间4-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_5",
+      "fieldType": "string",
+      "label": "用药时间4-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_6",
+      "fieldType": "string",
+      "label": "用药时间4-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_7",
+      "fieldType": "string",
+      "label": "用药时间4-药品7",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_8",
+      "fieldType": "string",
+      "label": "用药时间4-药品8",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_9",
+      "fieldType": "string",
+      "label": "用药时间4-药品9",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_4_10",
+      "fieldType": "string",
+      "label": "用药时间4-药品10",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_4", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_time_5",
+      "fieldType": "string",
+      "label": "用药时间5",
+      "helpText": "例如：14:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_5",
+      "fieldType": "string",
+      "label": "用药时间5名称",
+      "helpText": "例如：下午用药、午休后用药等",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_1",
+      "fieldType": "string",
+      "label": "用药时间5-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_2",
+      "fieldType": "string",
+      "label": "用药时间5-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_3",
+      "fieldType": "string",
+      "label": "用药时间5-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_4",
+      "fieldType": "string",
+      "label": "用药时间5-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_5",
+      "fieldType": "string",
+      "label": "用药时间5-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_6",
+      "fieldType": "string",
+      "label": "用药时间5-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_7",
+      "fieldType": "string",
+      "label": "用药时间5-药品7",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_8",
+      "fieldType": "string",
+      "label": "用药时间5-药品8",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_9",
+      "fieldType": "string",
+      "label": "用药时间5-药品9",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_5_10",
+      "fieldType": "string",
+      "label": "用药时间5-药品10",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_5", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_time_6",
+      "fieldType": "string",
+      "label": "用药时间6",
+      "helpText": "例如：16:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_6",
+      "fieldType": "string",
+      "label": "用药时间6名称",
+      "helpText": "例如：下午茶用药、加餐后用药等",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_1",
+      "fieldType": "string",
+      "label": "用药时间6-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_2",
+      "fieldType": "string",
+      "label": "用药时间6-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_3",
+      "fieldType": "string",
+      "label": "用药时间6-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_4",
+      "fieldType": "string",
+      "label": "用药时间6-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_5",
+      "fieldType": "string",
+      "label": "用药时间6-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_6",
+      "fieldType": "string",
+      "label": "用药时间6-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_7",
+      "fieldType": "string",
+      "label": "用药时间6-药品7",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_8",
+      "fieldType": "string",
+      "label": "用药时间6-药品8",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_9",
+      "fieldType": "string",
+      "label": "用药时间6-药品9",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_6_10",
+      "fieldType": "string",
+      "label": "用药时间6-药品10",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_6", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_time_7",
+      "fieldType": "string",
+      "label": "用药时间7",
+      "helpText": "例如：18:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_7",
+      "fieldType": "string",
+      "label": "用药时间7名称",
+      "helpText": "例如：晚餐前用药、运动前用药等",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_1",
+      "fieldType": "string",
+      "label": "用药时间7-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_2",
+      "fieldType": "string",
+      "label": "用药时间7-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_3",
+      "fieldType": "string",
+      "label": "用药时间7-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_4",
+      "fieldType": "string",
+      "label": "用药时间7-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_5",
+      "fieldType": "string",
+      "label": "用药时间7-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_6",
+      "fieldType": "string",
+      "label": "用药时间7-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_7",
+      "fieldType": "string",
+      "label": "用药时间7-药品7",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_8",
+      "fieldType": "string",
+      "label": "用药时间7-药品8",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_9",
+      "fieldType": "string",
+      "label": "用药时间7-药品9",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_7_10",
+      "fieldType": "string",
+      "label": "用药时间7-药品10",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_7", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_time_8",
+      "fieldType": "string",
+      "label": "用药时间8",
+      "helpText": "例如：21:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_8",
+      "fieldType": "string",
+      "label": "用药时间8名称",
+      "helpText": "例如：晚餐后用药、睡前准备用药等",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_1",
+      "fieldType": "string",
+      "label": "用药时间8-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_2",
+      "fieldType": "string",
+      "label": "用药时间8-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_3",
+      "fieldType": "string",
+      "label": "用药时间8-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_4",
+      "fieldType": "string",
+      "label": "用药时间8-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_5",
+      "fieldType": "string",
+      "label": "用药时间8-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_6",
+      "fieldType": "string",
+      "label": "用药时间8-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_7",
+      "fieldType": "string",
+      "label": "用药时间8-药品7",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_8",
+      "fieldType": "string",
+      "label": "用药时间8-药品8",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_9",
+      "fieldType": "string",
+      "label": "用药时间8-药品9",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_8_10",
+      "fieldType": "string",
+      "label": "用药时间8-药品10",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_8", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_time_9",
+      "fieldType": "string",
+      "label": "用药时间9",
+      "helpText": "例如：23:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_9",
+      "fieldType": "string",
+      "label": "用药时间9名称",
+      "helpText": "例如：深夜用药、夜宵后用药等",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_1",
+      "fieldType": "string",
+      "label": "用药时间9-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_2",
+      "fieldType": "string",
+      "label": "用药时间9-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_3",
+      "fieldType": "string",
+      "label": "用药时间9-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_4",
+      "fieldType": "string",
+      "label": "用药时间9-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_5",
+      "fieldType": "string",
+      "label": "用药时间9-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_6",
+      "fieldType": "string",
+      "label": "用药时间9-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_7",
+      "fieldType": "string",
+      "label": "用药时间9-药品7",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_8",
+      "fieldType": "string",
+      "label": "用药时间9-药品8",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_9",
+      "fieldType": "string",
+      "label": "用药时间9-药品9",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_9_10",
+      "fieldType": "string",
+      "label": "用药时间9-药品10",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_9", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_time_10",
+      "fieldType": "string",
+      "label": "用药时间10",
+      "helpText": "例如：01:00，留空表示不设置此时间段",
+      "required": false
+    },
+    {
+      "fieldName": "medicine_name_10",
+      "fieldType": "string",
+      "label": "用药时间10名称",
+      "helpText": "例如：凌晨用药、夜班用药等",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_1",
+      "fieldType": "string",
+      "label": "用药时间10-药品1",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_2",
+      "fieldType": "string",
+      "label": "用药时间10-药品2",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_3",
+      "fieldType": "string",
+      "label": "用药时间10-药品3",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_4",
+      "fieldType": "string",
+      "label": "用药时间10-药品4",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_5",
+      "fieldType": "string",
+      "label": "用药时间10-药品5",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_6",
+      "fieldType": "string",
+      "label": "用药时间10-药品6",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_7",
+      "fieldType": "string",
+      "label": "用药时间10-药品7",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_8",
+      "fieldType": "string",
+      "label": "用药时间10-药品8",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_9",
+      "fieldType": "string",
+      "label": "用药时间10-药品9",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "medicine_10_10",
+      "fieldType": "string",
+      "label": "用药时间10-药品10",
+      "helpText": "格式：药品名称 - 用量 [图片URL] [渠道名称]",
+      "required": false,
+      "conditional": { "field": "medicine_time_10", "operator": "not_empty" }
+    },
+    {
+      "fieldName": "title_prefix",
+      "fieldType": "string",
+      "label": "标题前缀",
+      "defaultValue": "[用药提醒]"
+    }
+  ],
+  "helpTextField": [
+    { "fieldType": "title", "value": "📋 用药提醒插件使用说明" },
+    { "fieldType": "text", "value": "✅ 支持最多10个用药时间段，每个时间段最多10种药品" },
+    { "fieldType": "text", "value": "✅ 每个药品可指定不同发送渠道，支持药品图片" },
+    { "fieldType": "text", "value": "✅ 消息发送：先发清单，30秒后依次发送每个药品" },
+    { "fieldType": "title", "value": "🚀 快速配置" },
+    { "fieldType": "text", "value": "1. 设置默认发送渠道（如微信）" },
+    { "fieldType": "text", "value": "2. 填写用药时间（如 08:00）" },
+    { "fieldType": "text", "value": "3. 自定义时间段名称（如 上午用药）" },
+    { "fieldType": "text", "value": "4. 添加药品：药品名称 - 用量 [图片URL] [渠道名称]" },
+    { "fieldType": "title", "value": "📝 药品格式示例" },
+    { "fieldType": "text", "value": "维生素C - 1片 [https://example.com/vitamin-c.jpg] [微信]" },
+    { "fieldType": "text", "value": "钙片 - 2片 [钉钉]" },
+    { "fieldType": "text", "value": "叶酸 - 1粒" },
+    { "fieldType": "title", "value": "💡 说明" },
+    { "fieldType": "text", "value": "• 图片URL和渠道名称都是可选的" },
+    { "fieldType": "text", "value": "• 不填写渠道名称则使用默认渠道" },
+    { "fieldType": "text", "value": "• 优先级：用药时间段 > 每日提醒时间 > 传统配置" },
+    { "fieldType": "title", "value": "🔧 API 接口" },
+    { "fieldType": "code", "value": "健康检查: GET {site_url}/api/plugins/pill_reminder/ping\n状态查询: GET {site_url}/api/plugins/pill_reminder/status\n手动触发: POST {site_url}/api/plugins/pill_reminder/trigger" }
+  ]
+}
+
+

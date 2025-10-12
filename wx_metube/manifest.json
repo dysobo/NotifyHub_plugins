@@ -1,0 +1,175 @@
+{
+    "id": "wx_metube",
+    "name": "企业微信MeTube下载器",
+    "description": "通过企业微信接收YouTube链接，自动提交到MeTube下载，完成后推送下载链接",
+    "author": "dysobo",
+    "logo": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
+    "thumbnailurl": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
+    "version": "0.0.1",
+    "documentation": "",
+    "path": "/wx_metube",
+    "configField": [
+        {
+            "fieldName": "qywx_base_url",
+            "fieldType": "string",
+            "label": "企业微信API地址",
+            "helpText": "企业微信API的基础URL地址，官方地址：https://qyapi.weixin.qq.com",
+            "defaultValue": "https://qyapi.weixin.qq.com"
+        },
+        {
+            "fieldName": "sCorpID",
+            "fieldType": "string",
+            "label": "企业微信CorpID",
+            "helpText": "企业微信的CorpID",
+            "defaultValue": ""
+        },
+        {
+            "fieldName": "sCorpsecret",
+            "fieldType": "string",
+            "label": "企业微信Secret",
+            "helpText": "企业微信应用的Secret",
+            "defaultValue": ""
+        },
+        {
+            "fieldName": "sAgentid",
+            "fieldType": "string",
+            "label": "企业微信AgentID",
+            "helpText": "企业微信应用的AgentID",
+            "defaultValue": ""
+        },
+        {
+            "fieldName": "sToken",
+            "fieldType": "string",
+            "label": "企业微信Token",
+            "helpText": "企业微信接收消息的Token",
+            "defaultValue": ""
+        },
+        {
+            "fieldName": "sEncodingAESKey",
+            "fieldType": "string",
+            "label": "企业微信EncodingAESKey",
+            "helpText": "企业微信消息加密的EncodingAESKey",
+            "defaultValue": ""
+        },
+        {
+            "fieldName": "metube_url",
+            "fieldType": "string",
+            "label": "MeTube服务地址",
+            "helpText": "MeTube的完整访问地址，群晖部署示例：http://your-nas-ip:8081",
+            "defaultValue": "http://192.168.0.88:8081"
+        },
+        {
+            "fieldName": "default_quality",
+            "fieldType": "select",
+            "label": "默认下载质量",
+            "helpText": "提交下载时的默认质量设置",
+            "options": [
+                {"value": "best", "label": "最佳质量"},
+                {"value": "720p", "label": "720p"},
+                {"value": "480p", "label": "480p"},
+                {"value": "audio", "label": "仅音频"}
+            ],
+            "defaultValue": "best"
+        },
+        {
+            "fieldName": "default_format",
+            "fieldType": "select",
+            "label": "默认下载格式",
+            "helpText": "提交下载时的默认格式设置",
+            "options": [
+                {"value": "any", "label": "任意格式"},
+                {"value": "mp4", "label": "MP4"},
+                {"value": "mkv", "label": "MKV"},
+                {"value": "webm", "label": "WebM"},
+                {"value": "mp3", "label": "MP3音频"},
+                {"value": "m4a", "label": "M4A音频"}
+            ],
+            "defaultValue": "any"
+        },
+        {
+            "fieldName": "auto_start",
+            "fieldType": "switch",
+            "label": "自动开始下载",
+            "helpText": "提交下载后是否自动开始下载",
+            "defaultValue": true
+        },
+        {
+            "fieldName": "notify_orphan_downloads",
+            "fieldType": "switch",
+            "label": "通知孤儿下载",
+            "helpText": "是否通知通过其他方式提交的已完成下载",
+            "defaultValue": false
+        },
+        {
+            "fieldName": "orphan_download_user",
+            "fieldType": "string",
+            "label": "孤儿下载通知用户",
+            "helpText": "接收孤儿下载通知的用户ID，留空则不发送通知",
+            "defaultValue": ""
+        },
+        {
+            "fieldName": "proxy",
+            "fieldType": "string",
+            "label": "代理地址",
+            "helpText": "留空则不使用代理。支持通过HTTP代理、SOCKS代理发送消息。示范：http://localhost:1080",
+            "defaultValue": "",
+            "required": false
+        },
+        {
+            "fieldName": "supported_domains",
+            "fieldType": "string",
+            "label": "支持的域名",
+            "helpText": "支持的视频网站域名，用逗号分隔。留空则支持所有yt-dlp支持的网站",
+            "defaultValue": "youtube.com,youtu.be,bilibili.com",
+            "required": false
+        }
+    ],
+    "helpTextField": [
+        {
+            "fieldType": "title",
+            "value": "企业微信MeTube下载器使用说明"
+        },
+        {
+            "fieldType": "text",
+            "value": "本插件可以接收企业微信发送的YouTube等视频链接，自动提交到MeTube进行下载，并在下载完成后推送下载链接。\n\n主要功能：\n• 接收企业微信消息中的视频链接\n• 自动提交到MeTube下载队列\n• 下载完成后推送文件下载链接\n• 支持多种视频网站和格式"
+        },
+        {
+            "fieldType": "title",
+            "value": "使用方法"
+        },
+        {
+            "fieldType": "text",
+            "value": "1. 配置企业微信应用信息\n2. 设置MeTube服务地址\n3. 在企业微信中发送YouTube链接\n4. 插件会自动提交下载并推送结果"
+        },
+        {
+            "fieldType": "title",
+            "value": "支持的消息格式"
+        },
+        {
+            "fieldType": "text",
+            "value": "• 直接发送YouTube链接：https://www.youtube.com/watch?v=xxx\n• 发送带描述的链接：下载这个视频 https://youtu.be/xxx\n• 支持YouTube、Bilibili等主流视频网站"
+        },
+        {
+            "fieldType": "title",
+            "value": "回调地址配置"
+        },
+        {
+            "fieldType": "code",
+            "value": "{site_url}/api/plugins/wx_metube/chat"
+        },
+        {
+            "fieldType": "title",
+            "value": "重要提示"
+        },
+        {
+            "fieldType": "text",
+            "value": "⚠️ 请确保MeTube服务正常运行且可访问\n⚠️ 企业微信应用需要配置正确的回调地址\n⚠️ 下载大文件可能需要较长时间，请耐心等待\n⚠️ 插件会自动监控下载状态并推送结果"
+        }
+    ],
+    "frontend_page": {
+        "name": "MeTube下载管理",
+        "icon": "mdi:download",
+        "path": "/common/view?hidePadding=true#/api/plugins/wx_metube/frontend/index.html",
+        "add_to_menu": true
+    }
+}

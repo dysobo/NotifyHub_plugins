@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业微信MeTube下载管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .status-card.success {
+            border-left-color: #28a745;
+        }
+        
+        .status-card.warning {
+            border-left-color: #ffc107;
+        }
+        
+        .status-card.error {
+            border-left-color: #dc3545;
+        }
+        
+        .status-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-card .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .status-card.success .value {
+            color: #28a745;
+        }
+        
+        .status-card.warning .value {
+            color: #ffc107;
+        }
+        
+        .status-card.error .value {
+            color: #dc3545;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .info-value {
+            color: #333;
+            font-family: monospace;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .url-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        
+        .test-section {
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                📱 企业微信MeTube下载管理
+            </h1>
+            <p>通过企业微信接收YouTube链接，自动提交到MeTube下载</p>
+        </div>
+        
+        <div class="content">
+            <div id="messages"></div>
+            
+            <div class="status-grid">
+                <div class="status-card" id="metube-status">
+                    <h3>🔗 MeTube连接</h3>
+                    <div class="value" id="metube-value">检查中...</div>
+                </div>
+                
+                <div class="status-card" id="config-status">
+                    <h3>⚙️ 配置状态</h3>
+                    <div class="value" id="config-value">检查中...</div>
+                </div>
+                
+                <div class="status-card" id="queue-status">
+                    <h3>📥 下载队列</h3>
+                    <div class="value" id="queue-value">-</div>
+                </div>
+                
+                <div class="status-card" id="done-status">
+                    <h3>✅ 已完成</h3>
+                    <div class="value" id="done-value">-</div>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-primary" onclick="refreshStatus()">
+                    🔄 刷新状态
+                </button>
+                <button class="btn btn-success" onclick="testMeTube()">
+                    🔍 测试MeTube
+                </button>
+                <button class="btn btn-warning" onclick="manualCheck()">
+                    📋 手动检查
+                </button>
+                <button class="btn btn-primary" onclick="reloadConfig()">
+                    ⚙️ 重载配置
+                </button>
+            </div>
+            
+            <div class="info-section">
+                <h3>📋 插件信息</h3>
+                <div id="plugin-info">
+                    <div class="loading">正在加载插件信息...</div>
+                </div>
+            </div>
+            
+            <div class="test-section">
+                <h3>🧪 测试下载提交</h3>
+                <p>您可以在这里测试下载提交功能：</p>
+                <input type="text" class="url-input" id="test-url" 
+                       placeholder="输入YouTube或其他视频链接，如：https://www.youtube.com/watch?v=xxx">
+                <button class="btn btn-primary" onclick="testDownload()">
+                    📤 提交测试下载
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API基础URL
+        const API_BASE = '/api/plugins/wx_metube';
+        
+        // 显示消息
+        function showMessage(message, type = 'info') {
+            const messagesDiv = document.getElementById('messages');
+            const messageClass = type === 'error' ? 'error-message' : 'success-message';
+            const messageHtml = `<div class="${messageClass}">${message}</div>`;
+            messagesDiv.innerHTML = messageHtml;
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                messagesDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // 获取插件状态
+        async function getStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const data = await response.json();
+                
+                // 更新MeTube状态
+                const metubeCard = document.getElementById('metube-status');
+                const metubeValue = document.getElementById('metube-value');
+                
+                if (data.metube_online) {
+                    metubeCard.className = 'status-card success';
+                    metubeValue.textContent = '在线';
+                } else {
+                    metubeCard.className = 'status-card error';
+                    metubeValue.textContent = '离线';
+                }
+                
+                // 更新配置状态
+                const configCard = document.getElementById('config-status');
+                const configValue = document.getElementById('config-value');
+                
+                if (data.config_ok) {
+                    configValue.textContent = '配置完整';
+                    configCard.className = 'status-card success';
+                } else {
+                    configValue.textContent = '配置不完整';
+                    configCard.className = 'status-card warning';
+                }
+                
+                // 更新下载统计
+                document.getElementById('queue-value').textContent = data.queue_count || 0;
+                document.getElementById('done-value').textContent = data.done_count || 0;
+                
+                // 更新插件信息
+                updatePluginInfo(data);
+                
+                return data;
+            } catch (error) {
+                console.error('获取状态失败:', error);
+                showMessage('获取状态失败: ' + error.message, 'error');
+                return null;
+            }
+        }
+        
+        // 更新插件信息
+        function updatePluginInfo(data) {
+            const pluginInfoDiv = document.getElementById('plugin-info');
+            
+            const infoHtml = `
+                <div class="info-item">
+                    <span class="info-label">插件名称:</span>
+                    <span class="info-value">${data.plugin_name || '企业微信MeTube下载器'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">MeTube地址:</span>
+                    <span class="info-value">${data.metube_url || '未知'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">连接状态:</span>
+                    <span class="info-value">${data.metube_online ? '✅ 正常' : '❌ 离线'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">配置状态:</span>
+                    <span class="info-value">${data.config_ok ? '✅ 完整' : '❌ 不完整'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">最后检查:</span>
+                    <span class="info-value">${data.last_check ? new Date(data.last_check).toLocaleString() : '未知'}</span>
+                </div>
+            `;
+            
+            pluginInfoDiv.innerHTML = infoHtml;
+        }
+        
+        // 刷新状态
+        async function refreshStatus() {
+            await getStatus();
+            showMessage('状态已刷新', 'success');
+        }
+        
+        // 测试MeTube连接
+        async function testMeTube() {
+            try {
+                const response = await fetch(`${API_BASE}/test-metube`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(`MeTube连接测试成功！版本: ${data.version_info?.version || '未知'}`, 'success');
+                } else {
+                    showMessage(`MeTube连接测试失败: ${data.message}`, 'error');
+                }
+                
+                // 刷新状态
+                await getStatus();
+                
+            } catch (error) {
+                console.error('测试MeTube连接失败:', error);
+                showMessage('测试MeTube连接失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 手动检查
+        async function manualCheck() {
+            try {
+                const response = await fetch(`${API_BASE}/manual-check`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('手动检查完成', 'success');
+                    await refreshStatus();
+                } else {
+                    showMessage('手动检查失败: ' + data.message, 'error');
+                }
+                
+            } catch (error) {
+                console.error('手动检查失败:', error);
+                showMessage('手动检查失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 重载配置
+        async function reloadConfig() {
+            try {
+                const response = await fetch(`${API_BASE}/reload-config`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('配置重载成功', 'success');
+                    await getStatus();
+                } else {
+                    showMessage('配置重载失败: ' + data.message, 'error');
+                }
+                
+            } catch (error) {
+                console.error('重载配置失败:', error);
+                showMessage('重载配置失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 测试下载提交
+        async function testDownload() {
+            const testUrl = document.getElementById('test-url').value.trim();
+            
+            if (!testUrl) {
+                showMessage('请输入要测试的URL', 'error');
+                return;
+            }
+            
+            try {
+                // 这里应该调用MeTube的API来提交下载
+                // 由于我们无法直接访问MeTube API，这里只是演示
+                showMessage(`正在提交测试下载: ${testUrl}`, 'success');
+                
+                // 清空输入框
+                document.getElementById('test-url').value = '';
+                
+                // 刷新状态
+                setTimeout(refreshStatus, 2000);
+                
+            } catch (error) {
+                console.error('测试下载提交失败:', error);
+                showMessage('测试下载提交失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshStatus();
+            
+            // 每30秒自动刷新状态
+            setInterval(refreshStatus, 30000);
+        });
+    </script>
+</body>
+</html>

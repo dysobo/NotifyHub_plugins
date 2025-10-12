@@ -1,0 +1,70 @@
+{
+  "id": "syno_chat_webhook",
+  "name": "群晖Chat群组Webhook转发",
+  "description": "接收群晖 Chat 群组消息（Outgoing Webhook），转发至 NotifyHub 内置渠道",
+  "author": "dysobo",
+  "logo": "https://img.nanako.vip/api/img/file?path=%E7%90%89%E7%92%83%E7%A5%9E%E7%A4%BE/%E7%90%89%E7%92%83%E7%A5%9E%E7%A4%BE2022/0b26e687-00eb-4359-8dc6-73b1f448ee51.webp",
+  "thumbnailurl": "https://img.nanako.vip/api/img/file?path=%E7%90%89%E7%92%83%E7%A5%9E%E7%A4%BE/%E7%90%89%E7%92%83%E7%A5%9E%E7%A4%BE2022/0b26e687-00eb-4359-8dc6-73b1f448ee51.webp",
+  "version": "0.0.1",
+  "documentation": "",
+  "path": "/syno_chat_webhook",
+  "background": "chat",
+  "configField": [
+    {
+      "fieldName": "send_target_type",
+      "fieldType": "select",
+      "label": "发送目标类型",
+      "options": [
+        { "value": "router", "label": "按通道发送" },
+        { "value": "channel", "label": "按渠道发送" }
+      ],
+      "defaultValue": "router"
+    },
+    {
+      "fieldName": "bind_router",
+      "fieldType": "enum",
+      "label": "选择通道（Router）",
+      "enumValuesRef": "RouterList",
+      "multiValue": false,
+      "conditional": { "field": "send_target_type", "operator": "equals", "value": "router" }
+    },
+    {
+      "fieldName": "bind_channel",
+      "fieldType": "enum",
+      "label": "选择渠道（Channel）",
+      "enumValuesRef": "ChannelList",
+      "multiValue": false,
+      "conditional": { "field": "send_target_type", "operator": "equals", "value": "channel" }
+    },
+    {
+      "fieldName": "verify_token",
+      "fieldType": "string",
+      "label": "校验 Token（可选）",
+      "helpText": "若在群晖 Chat 的 Outgoing Webhook 配置了 Token，则在此填写用于校验",
+      "required": false
+    },
+    {
+      "fieldName": "allowed_channels",
+      "fieldType": "string",
+      "label": "允许的Chat频道名（可选）",
+      "helpText": "逗号分隔的频道名列表；留空表示不过滤",
+      "required": false
+    },
+    {
+      "fieldName": "title_prefix",
+      "fieldType": "string",
+      "label": "标题前缀（可选）",
+      "helpText": "例如：[Synology Chat]",
+      "defaultValue": "[Synology Chat]",
+      "required": false
+    }
+  ],
+  "helpTextField": [
+    { "fieldType": "title", "value": "如何接入群晖 Chat Outgoing Webhook" },
+    { "fieldType": "text", "value": "在群晖 Chat 的整合/机器人中创建 Outgoing Webhook，触发URL填写下方地址。" },
+    { "fieldType": "code", "value": "{site_url}/api/plugins/syno_chat_webhook/webhook" }
+  ]
+}
+
+
+

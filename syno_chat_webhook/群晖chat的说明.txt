@@ -1,0 +1,62 @@
+在 Synology Chat 中使用整合功能
+Synology Chat 中的自定义整合功能使您可以配置传入和传出的 webhook、机器人和斜杠命令。请单击右上角的配置文件照片图标并选择整合以启用这些功能。
+
+传入的 Webhook
+传入的 webhook 将把来自外部源的消息张贴到 Chat。它利用了带 JSON 有效载荷的一般 HTTP 请求，及其他可选设置。
+
+若要发送消息：
+有两种方式可将数据发送到 webhook URL：
+
+作为 POST request 中 payload 参数的 JSON 字符串。
+作为 POST request 中正文的 JSON 字符串。
+JSON 有效载荷可包含 text 属性，该属性可张贴到指定频道。例如：
+
+payload={"text": "First line of message to post in the channel.\nAlso you can have a second line of message."}
+
+若要添加链接：
+若要添加链接，您可将其链接直接输入到 text。例如：
+
+payload={"text": "<https://www.synology.com>"}
+
+其他示例：
+
+payload={"text": "Check this!! <https://www.synology.com|Click here> for details!"}
+
+若要上传文件：
+您还可上传传入文章中的文件。若要上传文件，您的 JSON 有效载荷必须含有 file_url 属性，而且还要有可选文本属性。我们将下载您的 URL 并将其按用户文件上传文章处理。例如：
+
+payload={"text": "a fun image", "file_url": "http://imgur.com/xxxxx"}
+
+注意：
+文件上传大小上限为 32MB。
+传出的 Webhook
+传出的 webhook 将注意 Chat 消息中的触发词。这些触发词将向外部 URL 发送相关数据。只有符合以下一项或两项条件时，才会触发传出的 webhook：
+
+消息在特定频道中。
+消息以所选触发词中的某一个开头。
+如果已指定频道，则触发词为可选项。如果未选择频道，则触发词为必填项。但如果两个条件均已定义，则只有两个条件同时满足时，传出的 webhook 才会发生。
+
+传出数据：
+当收到的消息符合触发条件时，POST 将被递送到指定的 URL。数据字段描述如下：
+
+token: bot token
+channel_id
+channel_name
+user_id
+username
+post_id
+timestamp
+text
+trigger_word: which trigger word is matched
+
+响应：
+如果外部目的地要在 Chat 频道中作出响应，则需在响应的正文中传回 JSON。支持的字段与传入的 webhook JSON 相同。
+
+斜杠命令
+斜杠命令可让您通过在文本字段中键入“/”来轻松触发外发 webhook。只有您会看到回复，以避免其他用户收到无关消息。
+
+若要创建斜杠命令：
+斜杠命令可在整合中自定义。您可单击右上角的“配置文件照片”来访问整合。
+
+若要使用斜杠命令：
+在任何频道或对话的文本字段中键入前斜杠“/”，系统将会显示您和您的团队所创建的命令列表，供您选择。例如，如果键入“/”并选择“/lunch”，webhook 将会向您推荐食物。
