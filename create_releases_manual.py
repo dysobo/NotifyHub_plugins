@@ -1,33 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-NotifyHub 插件包发布脚本
-使用GitHub API直接发布插件包到Releases
+手动创建GitHub Release的脚本
+使用GitHub API直接创建Release，不依赖GitHub CLI
 """
 
 import os
 import json
 import requests
 import glob
-import base64
 from datetime import datetime
-import time
 
 def get_github_token():
     """获取GitHub Token"""
-    # 从环境变量获取token
+    # 从环境变量或用户输入获取token
     token = os.environ.get('GITHUB_TOKEN')
     if not token:
-        print("[ERROR] 请设置GITHUB_TOKEN环境变量")
-        print("获取Token: https://github.com/settings/tokens")
-        print("设置环境变量: set GITHUB_TOKEN=your_token_here")
-        return None
+        print("请在环境变量中设置GITHUB_TOKEN，或手动输入:")
+        token = input("GitHub Token: ").strip()
     return token
 
-def create_release_via_api(token, plugin_name, zip_file):
+def create_release_with_api(token, plugin_name, zip_file):
     """使用GitHub API创建Release"""
-    repo = "dysobo/NotifyHub_plugins"
-    
     # 获取插件信息
     manifest_path = f"{plugin_name}/manifest.json"
     manifest = None
@@ -40,7 +34,16 @@ def create_release_via_api(token, plugin_name, zip_file):
     timestamp = datetime.now().strftime('%Y.%m.%d')
     tag_name = f"plugin-{plugin_name}-{timestamp}"
     
-    # Release标题和描述
+    # API URL
+    url = "https://api.github.com/repos/dysobo/NotifyHub_plugins/releases"
+    
+    # Headers
+    headers = {
+        'Authorization': f'token {token}',
+        'Accept': 'application/vnd.github.v3+json'
+    }
+    
+    # 创建Release标题和描述
     title = f"{manifest.get('name', plugin_name)} v{version}" if manifest else f"{plugin_name} v{version}"
     description = f"""自动发布的 {plugin_name} 插件包
 
@@ -51,7 +54,7 @@ def create_release_via_api(token, plugin_name, zip_file):
 - 作者: {manifest.get('author', '未知') if manifest else '未知'}
 
 **更新时间:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-**仓库地址:** https://github.com/{repo}
+**仓库地址:** https://github.com/dysobo/NotifyHub_plugins
 
 **安装说明:**
 1. 下载zip文件
@@ -64,7 +67,7 @@ def create_release_via_api(token, plugin_name, zip_file):
 - 安装前请备份现有配置
 - 如有问题请提交Issue反馈"""
     
-    # 创建Release
+    # 创建Release数据
     release_data = {
         "tag_name": tag_name,
         "target_commitish": "main",
@@ -74,70 +77,61 @@ def create_release_via_api(token, plugin_name, zip_file):
         "prerelease": False
     }
     
-    headers = {
-        "Authorization": f"token {token}",
-        "Accept": "application/vnd.github.v3+json"
-    }
-    
     # 创建Release
-    url = f"https://api.github.com/repos/{repo}/releases"
     response = requests.post(url, headers=headers, json=release_data)
     
     if response.status_code == 201:
         release_info = response.json()
-        release_id = release_info['id']
         upload_url = release_info['upload_url'].split('{')[0]
-        
         print(f"[SUCCESS] Release创建成功: {tag_name}")
         
         # 上传文件
-        return upload_file(token, zip_file, upload_url, tag_name)
+        return upload_file(token, upload_url, zip_file, tag_name)
     else:
-        print(f"[ERROR] Release创建失败: {response.status_code}")
-        print(f"响应: {response.text}")
+        print(f"[ERROR] 创建Release失败: {response.status_code}")
+        print(f"错误信息: {response.text}")
         return False
 
-def upload_file(token, zip_file, upload_url, tag_name):
+def upload_file(token, upload_url, zip_file, tag_name):
     """上传文件到Release"""
     filename = os.path.basename(zip_file)
     
     headers = {
-        "Authorization": f"token {token}",
-        "Content-Type": "application/zip"
+        'Authorization': f'token {token}',
+        'Content-Type': 'application/zip'
     }
     
-    # 读取文件内容
     with open(zip_file, 'rb') as f:
-        file_content = f.read()
-    
-    # 上传文件
-    upload_params = {"name": filename}
-    url = f"{upload_url}?name={filename}"
-    
-    response = requests.post(url, headers=headers, data=file_content)
+        files = {'file': (filename, f, 'application/zip')}
+        
+        response = requests.post(
+            f"{upload_url}?name={filename}&label={filename}",
+            headers=headers,
+            files=files
+        )
     
     if response.status_code == 201:
         print(f"[SUCCESS] 文件上传成功: {filename}")
-        print(f"Release URL: https://github.com/dysobo/NotifyHub_plugins/releases/tag/{tag_name}")
         return True
     else:
         print(f"[ERROR] 文件上传失败: {response.status_code}")
-        print(f"响应: {response.text}")
+        print(f"错误信息: {response.text}")
         return False
 
 def main():
     """主函数"""
-    print("NotifyHub 插件包发布工具")
+    print("NotifyHub 插件手动发布工具")
     print("=" * 50)
     
-    # 检查GitHub Token
-    token = get_github_token()
-    if not token:
-        return
-    
-    # 检查插件包目录
+    # 检查packages目录
     if not os.path.exists('packages'):
         print("[ERROR] 找不到packages目录，请先运行打包脚本")
+        return
+    
+    # 获取GitHub Token
+    token = get_github_token()
+    if not token:
+        print("[ERROR] 未提供GitHub Token")
         return
     
     # 获取所有zip文件
@@ -148,9 +142,7 @@ def main():
     
     print(f"找到 {len(zip_files)} 个插件包:")
     for zip_file in zip_files:
-        filename = os.path.basename(zip_file)
-        size = os.path.getsize(zip_file)
-        print(f"  - {filename} ({size} bytes)")
+        print(f"  - {zip_file}")
     
     # 确认发布
     confirm = input("\n是否继续发布所有插件? (y/N): ")
@@ -168,16 +160,12 @@ def main():
         plugin_name = filename.split('_')[0]
         
         print(f"\n正在发布插件: {plugin_name}")
-        print("-" * 30)
-        
-        if create_release_via_api(token, plugin_name, zip_file):
+        if create_release_with_api(token, plugin_name, zip_file):
             success_count += 1
-        
-        # 避免API限制
-        time.sleep(2)
+        print("-" * 30)
     
     # 总结
-    print("\n" + "=" * 50)
+    print("=" * 50)
     print(f"发布完成: {success_count}/{total_count} 个插件发布成功")
     
     if success_count > 0:

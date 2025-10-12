@@ -1,0 +1,21 @@
+NotifyHub 插件发布标签信息
+========================================
+创建时间: 2025-10-12 15:06:49
+仓库地址: https://github.com/dysobo/NotifyHub_plugins
+
+插件标签列表:
+
+手动创建Release步骤:
+1. 访问: https://github.com/dysobo/NotifyHub_plugins/releases
+2. 点击 'Create a new release'
+3. 选择对应的标签
+4. 填写Release标题和描述
+5. 上传对应的zip文件
+6. 点击 'Publish release'
+
+插件包文件对应关系:
+- plugin-QQ群消息转发-2025.10.12 -> QQ群消息转发_v0.0.1_20251012_145923.zip
+- plugin-企业微信MeTube下载器-2025.10.12 -> 企业微信MeTube下载器_v0.0.1_20251012_145923.zip
+- plugin-插件管理器-2025.10.12 -> 插件管理器_v1.0.0_20251012_145923.zip
+- plugin-用药提醒-2025.10.12 -> 用药提醒_v0.0.1_20251012_145923.zip
+- plugin-群晖Chat群组Webhook转发-2025.10.12 -> 群晖Chat群组Webhook转发_v0.0.1_20251012_145923.zip
