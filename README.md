@@ -1,5 +1,20 @@
 # NotifyHub 插件集合
 
+<div align="center">
+
+![GitHub stars](https://img.shields.io/github/stars/dysobo/NotifyHub_plugins?style=social)
+![GitHub forks](https://img.shields.io/github/forks/dysobo/NotifyHub_plugins?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/dysobo/NotifyHub_plugins?style=social)
+![GitHub last commit](https://img.shields.io/github/last-commit/dysobo/NotifyHub_plugins?color=blue)
+![GitHub repo size](https://img.shields.io/github/repo-size/dysobo/NotifyHub_plugins?color=green)
+
+[![访问量](https://visitor-badge.glitch.me/badge?page_id=dysobo.NotifyHub_plugins)](https://github.com/dysobo/NotifyHub_plugins)
+![GitHub issues](https://img.shields.io/github/issues/dysobo/NotifyHub_plugins)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/dysobo/NotifyHub_plugins)
+![GitHub license](https://img.shields.io/github/license/dysobo/NotifyHub_plugins)
+
+</div>
+
 > **免责声明**：都是纯自用，不可靠，有问题请自改。cursor写的，我是一句看不懂 😅  
 > 里面AI写的当不得真，说下实际情况：
 
@@ -44,6 +59,32 @@
 
 欢迎提交Issue和Pull Request来改进这些插件！
 
+## 📊 仓库统计
+
+<div align="center">
+
+### 📈 代码统计
+![GitHub language count](https://img.shields.io/github/languages/count/dysobo/NotifyHub_plugins)
+![GitHub top language](https://img.shields.io/github/languages/top/dysobo/NotifyHub_plugins)
+
+### 📅 活动统计
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/dysobo/NotifyHub_plugins)
+![GitHub contributors](https://img.shields.io/github/contributors/dysobo/NotifyHub_plugins)
+
+### 🔧 插件状态
+![Plugins](https://img.shields.io/badge/Plugins-5-blue)
+![Status](https://img.shields.io/badge/Status-Active-green)
+
+</div>
+
 ---
+
+<div align="center">
+
+**⭐ 如果这个项目对你有帮助，请给个Star！**
+
+[![GitHub stars](https://img.shields.io/github/stars/dysobo/NotifyHub_plugins?style=for-the-badge&logo=github)](https://github.com/dysobo/NotifyHub_plugins/stargazers)
+
+</div>
 
 *最后更新：2025年*
