@@ -1,0 +1,190 @@
+name: 自动发布插件包
+
+on:
+  push:
+    tags:
+      - 'plugin-*'
+  workflow_dispatch:
+    inputs:
+      plugin_name:
+        description: '插件名称 (pill_reminder, plugin_manager, qq_bridge, syno_chat_webhook, wx_metube)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - pill_reminder
+          - plugin_manager
+          - qq_bridge
+          - syno_chat_webhook
+          - wx_metube
+
+jobs:
+  package-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: 安装依赖
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests pyyaml
+        
+    - name: 运行打包脚本
+      run: |
+        python package_plugins.py
+        
+    - name: 检查打包结果
+      run: |
+        echo "检查打包文件:"
+        ls -la packages/
+        echo "打包文件数量:"
+        ls packages/*.zip | wc -l
+        
+    - name: 创建GitHub Release
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/plugin-')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # 获取标签名
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        PLUGIN_NAME=${TAG_NAME#plugin-}
+        
+        echo "发布插件: $PLUGIN_NAME"
+        
+        # 查找对应的zip文件
+        ZIP_FILE=$(ls packages/${PLUGIN_NAME}_*.zip | head -1)
+        
+        if [ -f "$ZIP_FILE" ]; then
+          # 创建Release
+          gh release create "$TAG_NAME" "$ZIP_FILE" \
+            --title "${PLUGIN_NAME^} 插件包" \
+            --notes "自动发布的 ${PLUGIN_NAME} 插件包
+          
+          更新时间: $(date)
+          仓库地址: https://github.com/${{ github.repository }}
+          
+          安装说明:
+          1. 下载zip文件
+          2. 解压到NotifyHub的plugins目录
+          3. 重启NotifyHub服务
+          4. 在插件管理中启用插件"
+          
+          echo "✅ $PLUGIN_NAME 发布完成"
+        else
+          echo "❌ 找不到 $PLUGIN_NAME 的打包文件"
+          exit 1
+        fi
+        
+    - name: 手动发布所有插件
+      if: github.event_name == 'workflow_dispatch' && inputs.plugin_name == 'all'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "发布所有插件包"
+        
+        plugins=("pill_reminder" "plugin_manager" "qq_bridge" "syno_chat_webhook" "wx_metube")
+        
+        for plugin in "${plugins[@]}"; do
+          echo "处理插件: $plugin"
+          
+          # 查找对应的zip文件
+          ZIP_FILE=$(ls packages/${plugin}_*.zip | head -1)
+          
+          if [ -f "$ZIP_FILE" ]; then
+            # 创建版本标签
+            VERSION=$(date +"%Y.%m.%d")
+            TAG_NAME="plugin-${plugin}-${VERSION}"
+            
+            # 检查标签是否已存在
+            if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+              echo "标签 $TAG_NAME 已存在，跳过"
+              continue
+            fi
+            
+            # 创建Release
+            gh release create "$TAG_NAME" "$ZIP_FILE" \
+              --title "${plugin^} v${VERSION}" \
+              --notes "自动发布的 ${plugin} 插件包
+            
+            更新时间: $(date)
+            仓库地址: https://github.com/${{ github.repository }}
+            
+            安装说明:
+            1. 下载zip文件
+            2. 解压到NotifyHub的plugins目录
+            3. 重启NotifyHub服务
+            4. 在插件管理中启用插件"
+            
+            echo "✅ $plugin 发布完成: $TAG_NAME"
+          else
+            echo "❌ 找不到 $plugin 的打包文件"
+          fi
+        done
+        
+    - name: 手动发布单个插件
+      if: github.event_name == 'workflow_dispatch' && inputs.plugin_name != 'all'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        PLUGIN_NAME=${{ inputs.plugin_name }}
+        echo "发布插件: $PLUGIN_NAME"
+        
+        # 查找对应的zip文件
+        ZIP_FILE=$(ls packages/${PLUGIN_NAME}_*.zip | head -1)
+        
+        if [ -f "$ZIP_FILE" ]; then
+          # 创建版本标签
+          VERSION=$(date +"%Y.%m.%d")
+          TAG_NAME="plugin-${PLUGIN_NAME}-${VERSION}"
+          
+          # 创建Release
+          gh release create "$TAG_NAME" "$ZIP_FILE" \
+            --title "${PLUGIN_NAME^} v${VERSION}" \
+            --notes "自动发布的 ${PLUGIN_NAME} 插件包
+          
+          更新时间: $(date)
+          仓库地址: https://github.com/${{ github.repository }}
+          
+          安装说明:
+          1. 下载zip文件
+          2. 解压到NotifyHub的plugins目录
+          3. 重启NotifyHub服务
+          4. 在插件管理中启用插件"
+          
+          echo "✅ $PLUGIN_NAME 发布完成: $TAG_NAME"
+        else
+          echo "❌ 找不到 $PLUGIN_NAME 的打包文件"
+          exit 1
+        fi
+        
+    - name: 上传打包文件到Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: plugin-packages
+        path: packages/*.zip
+        
+    - name: 更新README发布信息
+      run: |
+        echo "## 📦 最新发布" >> RELEASE_INFO.md
+        echo "" >> RELEASE_INFO.md
+        echo "| 插件名称 | 版本 | 发布时间 | 下载链接 |" >> RELEASE_INFO.md
+        echo "|---------|------|----------|----------|" >> RELEASE_INFO.md
+        
+        for zip_file in packages/*.zip; do
+          if [ -f "$zip_file" ]; then
+            filename=$(basename "$zip_file")
+            plugin_name=$(echo "$filename" | cut -d'_' -f1)
+            version=$(echo "$filename" | cut -d'_' -f2)
+            timestamp=$(echo "$filename" | cut -d'_' -f3 | cut -d'.' -f1)
+            
+            echo "| $plugin_name | $version | $timestamp | [下载]($zip_file) |" >> RELEASE_INFO.md
+          fi
+        done

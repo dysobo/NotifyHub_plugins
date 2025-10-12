@@ -1,0 +1,22 @@
+NotifyHub 插件打包信息
+========================================
+打包时间: 2025-10-12 14:59:23
+仓库地址: https://github.com/dysobo/NotifyHub_plugins
+
+插件列表:
+- 用药提醒 v0.0.1
+  描述: 每日定时发送用药提醒；可自定义用药量与图片，转发至内置渠道/通道
+- 插件管理器 v1.0.0
+  描述: 便于插件查看与下载
+- QQ群消息转发 v0.0.1
+  描述: 对接 OneBot 12 标准实现（如 NapCatQQ），接收指定QQ群消息并转发到 NotifyHub 渠道/通道
+- 群晖Chat群组Webhook转发 v0.0.1
+  描述: 接收群晖 Chat 群组消息（Outgoing Webhook），转发至 NotifyHub 内置渠道
+- 企业微信MeTube下载器 v0.0.1
+  描述: 通过企业微信接收YouTube链接，自动提交到MeTube下载，完成后推送下载链接
+
+安装说明:
+1. 下载对应的zip文件
+2. 解压到NotifyHub的plugins目录
+3. 重启NotifyHub服务
+4. 在插件管理中启用插件
