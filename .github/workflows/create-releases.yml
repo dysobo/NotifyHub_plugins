@@ -1,0 +1,138 @@
+name: 创建插件Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_all:
+        description: '创建所有插件的Release'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  create-releases:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: 运行打包脚本
+      run: |
+        python package_plugins.py
+        
+    - name: 创建所有插件Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "开始创建插件Release..."
+        
+        # 插件映射表 (标签名 -> 插件目录 -> zip文件名模式)
+        declare -A PLUGIN_MAP
+        PLUGIN_MAP["plugin-用药提醒-2025.10.12"]="pill_reminder:用药提醒"
+        PLUGIN_MAP["plugin-插件管理器-2025.10.12"]="plugin_manager:插件管理器"
+        PLUGIN_MAP["plugin-QQ群消息转发-2025.10.12"]="qq_bridge:QQ群消息转发"
+        PLUGIN_MAP["plugin-群晖Chat群组Webhook转发-2025.10.12"]="syno_chat_webhook:群晖Chat群组Webhook转发"
+        PLUGIN_MAP["plugin-企业微信MeTube下载器-2025.10.12"]="wx_metube:企业微信MeTube下载器"
+        
+        # 检查可用的zip文件
+        echo "可用的zip文件:"
+        ls -la packages/*.zip || echo "没有找到zip文件"
+        
+        # 为每个标签创建Release
+        for tag_name in "${!PLUGIN_MAP[@]}"; do
+          echo "处理标签: $tag_name"
+          
+          # 解析映射信息
+          IFS=':' read -r plugin_dir plugin_name <<< "${PLUGIN_MAP[$tag_name]}"
+          
+          echo "插件目录: $plugin_dir"
+          echo "插件名称: $plugin_name"
+          
+          # 查找对应的zip文件
+          zip_file=$(find packages -name "*${plugin_name}*.zip" | head -1)
+          
+          if [ -z "$zip_file" ]; then
+            echo "尝试其他匹配方式..."
+            case "$plugin_name" in
+              "用药提醒")
+                zip_file=$(find packages -name "*用药提醒*.zip" | head -1)
+                ;;
+              "插件管理器")
+                zip_file=$(find packages -name "*插件管理器*.zip" | head -1)
+                ;;
+              "QQ群消息转发")
+                zip_file=$(find packages -name "*QQ群消息转发*.zip" | head -1)
+                ;;
+              "群晖Chat群组Webhook转发")
+                zip_file=$(find packages -name "*群晖Chat*.zip" | head -1)
+                ;;
+              "企业微信MeTube下载器")
+                zip_file=$(find packages -name "*企业微信*.zip" | head -1)
+                ;;
+            esac
+          fi
+          
+          echo "找到的zip文件: $zip_file"
+          
+          if [ -f "$zip_file" ]; then
+            # 检查Release是否已存在
+            if gh release view "$tag_name" >/dev/null 2>&1; then
+              echo "Release $tag_name 已存在，跳过"
+              continue
+            fi
+            
+            # 读取插件信息
+            if [ -f "${plugin_dir}/manifest.json" ]; then
+              plugin_version=$(python -c "import json; print(json.load(open('${plugin_dir}/manifest.json'))['version'])" 2>/dev/null || echo "1.0.0")
+              plugin_desc=$(python -c "import json; print(json.load(open('${plugin_dir}/manifest.json'))['description'])" 2>/dev/null || echo "无描述")
+              plugin_author=$(python -c "import json; print(json.load(open('${plugin_dir}/manifest.json'))['author'])" 2>/dev/null || echo "未知")
+            else
+              plugin_version="1.0.0"
+              plugin_desc="无描述"
+              plugin_author="未知"
+            fi
+            
+            echo "插件版本: $plugin_version"
+            
+            # 创建Release
+            gh release create "$tag_name" "$zip_file" \
+              --title "${plugin_name} v${plugin_version}" \
+              --notes "自动发布的 ${plugin_name} 插件包
+
+**插件信息:**
+- 名称: ${plugin_name}
+- 版本: ${plugin_version}
+- 描述: ${plugin_desc}
+- 作者: ${plugin_author}
+
+**更新时间:** $(date '+%Y-%m-%d %H:%M:%S')
+**仓库地址:** https://github.com/${{ github.repository }}
+
+**安装说明:**
+1. 下载zip文件
+2. 解压到NotifyHub的plugins目录
+3. 重启NotifyHub服务
+4. 在插件管理中启用插件
+
+**注意事项:**
+- 请确保NotifyHub版本兼容
+- 安装前请备份现有配置
+- 如有问题请提交Issue反馈"
+            
+            echo "✅ $plugin_name 发布完成: $tag_name"
+          else
+            echo "❌ 找不到 $plugin_name 的打包文件"
+          fi
+          
+          echo "----------------------------------------"
+        done
+        
+        echo "所有插件Release创建完成！"
