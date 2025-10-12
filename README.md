@@ -8,7 +8,8 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/dysobo/NotifyHub_plugins?color=blue)
 ![GitHub repo size](https://img.shields.io/github/repo-size/dysobo/NotifyHub_plugins?color=green)
 
-[![访问量](https://visitor-badge.glitch.me/badge?page_id=dysobo.NotifyHub_plugins)](https://github.com/dysobo/NotifyHub_plugins)
+![GitHub Profile Views](https://komarev.com/ghpvc/?username=dysobo&repo=NotifyHub_plugins&color=blue&style=flat-square&label=Profile%20Views)
+[![GitHub all releases](https://img.shields.io/github/downloads/dysobo/NotifyHub_plugins/total.svg?style=flat-square)](https://github.com/dysobo/NotifyHub_plugins/releases)
 ![GitHub issues](https://img.shields.io/github/issues/dysobo/NotifyHub_plugins)
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/dysobo/NotifyHub_plugins)
 ![GitHub license](https://img.shields.io/github/license/dysobo/NotifyHub_plugins)
