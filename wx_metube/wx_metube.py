@@ -39,7 +39,8 @@ PLUGIN_NAME = "企业微信MeTube下载器"
 
 # 缓存配置
 token_cache = Cache(maxsize=1)
-download_cache = Cache(maxsize=1000, ttl=3600)  # 下载记录缓存1小时
+download_cache = Cache(maxsize=5000, ttl=86400)  # 下载记录缓存24小时
+processed_downloads_cache = Cache(maxsize=10000, ttl=604800)  # 已处理下载缓存7天
 
 # 图片缓存目录
 IMAGE_CACHE_DIR = Path("/data/plugins/wx_metube/images")
@@ -675,7 +676,7 @@ class DownloadMonitor:
             
             # 检查MeTube连接
             if not self.metube_client.check_connection():
-                logger.warning("MeTube连接失败，跳过本次检查")
+                logger.debug("MeTube连接失败，跳过本次检查")
                 return
             
             # 获取下载状态
@@ -689,6 +690,7 @@ class DownloadMonitor:
             await self._process_completed_downloads(completed_downloads)
             
             self.last_check_time = current_time
+            logger.debug(f"下载状态检查完成，活跃任务: {len(self.active_tasks)}, 已完成下载: {len(completed_downloads)}")
             
         except Exception as e:
             logger.error(f"检查下载状态异常: {e}")
@@ -738,14 +740,32 @@ class DownloadMonitor:
     
     async def _process_completed_downloads(self, completed_downloads: List[Dict[str, Any]]):
         """处理已完成的下载"""
-        logger.info(f"检查已完成下载数量: {len(completed_downloads)}")
+        if not completed_downloads:
+            return
+            
+        logger.debug(f"检查已完成下载数量: {len(completed_downloads)}")
+        processed_count = 0
+        
         for download_item in completed_downloads:
-            logger.info(f"检查下载项目: {download_item}")
-            if download_item.get('status') == 'finished':
-                logger.info(f"发现已完成下载: {download_item.get('url')}")
-                await self._process_completed_download(download_item)
-            else:
-                logger.debug(f"下载项目状态不是finished: {download_item.get('status')}")
+            if download_item.get('status') != 'finished':
+                continue
+                
+            url = download_item.get('url')
+            if not url:
+                continue
+            
+            # 检查是否已经处理过这个下载
+            cache_key = f"processed_{url}"
+            if processed_downloads_cache.get(cache_key):
+                logger.debug(f"下载已完成且已处理过，跳过: {url}")
+                continue
+            
+            logger.info(f"发现新的已完成下载: {url}")
+            await self._process_completed_download(download_item)
+            processed_count += 1
+        
+        if processed_count > 0:
+            logger.info(f"本次处理了 {processed_count} 个新的已完成下载")
     
     async def _process_completed_download(self, download_item: Dict[str, Any]):
         """处理单个已完成的下载"""
@@ -816,6 +836,16 @@ class DownloadMonitor:
                 download_task.filename = filename
                 download_task.download_url = download_url
                 download_cache.set(url, download_task)
+                
+                # 标记为已处理，避免重复通知
+                cache_key = f"processed_{url}"
+                processed_downloads_cache.set(cache_key, {
+                    'processed_time': datetime.datetime.now(),
+                    'title': title,
+                    'filename': filename,
+                    'user_id': download_task.user_id
+                })
+                
                 logger.info(f"下载完成通知已发送: {title}")
             else:
                 logger.error(f"下载完成通知发送失败: {title}")
@@ -834,7 +864,7 @@ class DownloadMonitor:
             
             # 检查是否已经处理过这个孤儿下载
             orphan_cache_key = f"orphan_{url}"
-            if download_cache.get(orphan_cache_key):
+            if processed_downloads_cache.get(orphan_cache_key):
                 logger.debug(f"孤儿下载已处理过: {url}")
                 return
             
@@ -878,13 +908,13 @@ class DownloadMonitor:
                 logger.error(f"孤儿下载通知发送失败: {title}")
             
             # 标记为已处理
-            download_cache.set(orphan_cache_key, {
+            processed_downloads_cache.set(orphan_cache_key, {
                 'processed': True,
                 'processed_time': datetime.datetime.now(),
                 'title': title,
                 'filename': filename,
                 'download_url': download_url
-            }, ttl=86400)  # 缓存24小时
+            })
             
         except Exception as e:
             logger.error(f"处理孤儿下载异常: {e}")
@@ -973,7 +1003,7 @@ def setup_download_monitor():
         else:
             logger.warning(f"{PLUGIN_NAME}: MeTube连接失败，监控将在后台重试")
         
-        # 注册定时任务，每30秒检查一次下载状态
+        # 注册定时任务，每5分钟检查一次下载状态
         def check_downloads_task():
             try:
                 import asyncio
@@ -984,7 +1014,7 @@ def setup_download_monitor():
             except Exception as e:
                 logger.error(f"下载监控任务执行失败: {e}")
         
-        register_cron_job("*/1 * * * *", "检查MeTube下载状态", check_downloads_task)
+        register_cron_job("*/5 * * * *", "检查MeTube下载状态", check_downloads_task)
         
     except Exception as e:
         logger.error(f"{PLUGIN_NAME}: 初始化失败: {e}")
@@ -1245,9 +1275,9 @@ async def get_orphan_downloads():
         orphan_downloads = []
         
         # 从缓存中获取孤儿下载记录
-        for key in download_cache.keys():
+        for key in processed_downloads_cache.keys():
             if key.startswith('orphan_'):
-                orphan_data = download_cache.get(key)
+                orphan_data = processed_downloads_cache.get(key)
                 if orphan_data:
                     orphan_downloads.append({
                         'url': key.replace('orphan_', ''),
@@ -1263,7 +1293,7 @@ async def get_orphan_downloads():
             "orphan_downloads": orphan_downloads,
             "notify_orphan_downloads": getattr(config, 'notify_orphan_downloads', False),
             "orphan_download_user": getattr(config, 'orphan_download_user', ''),
-            "cache_size": len(download_cache)
+            "cache_size": len(processed_downloads_cache)
         }
         
     except Exception as e:
@@ -1278,12 +1308,12 @@ async def clear_orphan_cache():
         
         # 清理孤儿下载缓存
         keys_to_remove = []
-        for key in download_cache.keys():
+        for key in processed_downloads_cache.keys():
             if key.startswith('orphan_'):
                 keys_to_remove.append(key)
         
         for key in keys_to_remove:
-            download_cache.delete(key)
+            processed_downloads_cache.delete(key)
             cleared_count += 1
         
         return {
@@ -1294,4 +1324,52 @@ async def clear_orphan_cache():
         
     except Exception as e:
         logger.error(f"清理孤儿下载缓存失败: {e}")
+        raise HTTPException(status_code=500, detail=f"清理缓存失败: {e}")
+
+
+@wx_metube_router.get("/processed-downloads")
+async def get_processed_downloads():
+    """获取已处理的下载记录"""
+    try:
+        processed_downloads = []
+        
+        # 从缓存中获取已处理的下载记录
+        for key in processed_downloads_cache.keys():
+            if key.startswith('processed_'):
+                data = processed_downloads_cache.get(key)
+                if data:
+                    processed_downloads.append({
+                        'url': key.replace('processed_', ''),
+                        'processed_time': data.get('processed_time', '').isoformat() if data.get('processed_time') else '',
+                        'title': data.get('title', '未知'),
+                        'filename': data.get('filename', '未知'),
+                        'user_id': data.get('user_id', '未知')
+                    })
+        
+        return {
+            "processed_downloads_count": len(processed_downloads),
+            "processed_downloads": processed_downloads,
+            "cache_size": len(processed_downloads_cache)
+        }
+        
+    except Exception as e:
+        logger.error(f"获取已处理下载记录失败: {e}")
+        raise HTTPException(status_code=500, detail=f"获取记录失败: {e}")
+
+
+@wx_metube_router.post("/clear-processed-cache")
+async def clear_processed_cache():
+    """清理已处理下载缓存"""
+    try:
+        cleared_count = len(processed_downloads_cache)
+        processed_downloads_cache.clear()
+        
+        return {
+            "success": True,
+            "cleared_count": cleared_count,
+            "message": f"已清理 {cleared_count} 个已处理下载缓存记录"
+        }
+        
+    except Exception as e:
+        logger.error(f"清理已处理下载缓存失败: {e}")
         raise HTTPException(status_code=500, detail=f"清理缓存失败: {e}")
