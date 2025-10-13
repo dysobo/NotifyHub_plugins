@@ -891,16 +891,14 @@ class DownloadMonitor:
                 # 优先使用配置的孤儿下载用户
                 target_user = config.orphan_download_user
                 logger.info(f"使用配置的孤儿下载通知用户: {target_user}")
+            elif config.default_user:
+                # 使用默认用户
+                target_user = config.default_user
+                logger.info(f"使用默认通知用户: {target_user}")
             else:
-                # 使用默认用户（从企业微信配置中获取）
-                # 这里可以从企业微信配置中获取默认用户，或者使用一个合理的默认值
-                # 暂时先尝试从配置中获取，如果没有则跳过通知
-                target_user = getattr(config, 'orphan_download_user', None)
-                if not target_user:
-                    # 如果没有配置任何用户，可以尝试从企业微信配置中获取默认用户
-                    # 或者使用一个固定的默认用户ID
-                    logger.warning(f"未配置孤儿下载通知用户，跳过通知: {title}")
-                    return
+                # 如果都没有配置，跳过通知
+                logger.warning(f"未配置孤儿下载通知用户和默认用户，跳过通知: {title}")
+                return
             
             # 发送孤儿下载通知
             if target_user:

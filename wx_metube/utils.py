@@ -39,7 +39,7 @@ class Config:
         # 孤儿下载通知配置
         self.notify_orphan_downloads = self._config.get('notify_orphan_downloads', False)
         self.orphan_download_user = self._config.get('orphan_download_user', '')
-        
+        self.default_user = self._config.get('default_user', '')
         
         # 解析支持的域名
         if self.supported_domains:
