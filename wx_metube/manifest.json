@@ -5,7 +5,7 @@
     "author": "dysobo",
     "logo": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
     "thumbnailurl": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "documentation": "",
     "path": "/wx_metube",
     "configField": [
@@ -151,11 +151,5 @@
             "fieldType": "text",
             "value": "⚠️ 请确保MeTube服务正常运行且可访问\n⚠️ 企业微信应用需要配置正确的回调地址\n⚠️ 下载大文件可能需要较长时间，请耐心等待\n⚠️ 插件会自动监控下载状态并推送结果"
         }
-    ],
-    "frontend_page": {
-        "name": "MeTube下载管理",
-        "icon": "mdi:download",
-        "path": "/common/view?hidePadding=true#/api/plugins/wx_metube/frontend/index.html",
-        "add_to_menu": true
-    }
+    ]
 }
