@@ -864,9 +864,12 @@ class DownloadMonitor:
             
             # 检查是否已经处理过这个孤儿下载
             orphan_cache_key = f"orphan_{url}"
-            if processed_downloads_cache.get(orphan_cache_key):
-                logger.debug(f"孤儿下载已处理过: {url}")
+            cached_result = processed_downloads_cache.get(orphan_cache_key)
+            if cached_result:
+                logger.info(f"孤儿下载已处理过: {url}, 跳过通知")
                 return
+            else:
+                logger.info(f"孤儿下载未处理过: {url}, 继续处理")
             
             # 构建下载链接
             if filename:
@@ -887,13 +890,15 @@ class DownloadMonitor:
             # 确定通知接收用户
             target_user = None
             
+            logger.info(f"检查孤儿下载配置 - 启用: {config.notify_orphan_downloads}, 用户: {config.orphan_download_user}")
+            
             if config.notify_orphan_downloads and config.orphan_download_user:
                 # 使用配置的孤儿下载用户
                 target_user = config.orphan_download_user
                 logger.info(f"使用配置的孤儿下载通知用户: {target_user}")
             else:
                 # 如果没有配置，跳过通知
-                logger.warning(f"未配置孤儿下载通知用户，跳过通知: {title}")
+                logger.warning(f"未配置孤儿下载通知用户，跳过通知: {title} (启用: {config.notify_orphan_downloads}, 用户: {config.orphan_download_user})")
                 return
             
             # 发送孤儿下载通知
