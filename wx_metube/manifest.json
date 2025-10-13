@@ -5,7 +5,7 @@
     "author": "dysobo",
     "logo": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
     "thumbnailurl": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "documentation": "",
     "path": "/wx_metube",
     "configField": [
@@ -104,39 +104,7 @@
             "fieldName": "orphan_download_user",
             "fieldType": "string",
             "label": "孤儿下载通知用户",
-            "helpText": "接收孤儿下载通知的用户ID，留空则不发送通知",
-            "defaultValue": ""
-        },
-        {
-            "fieldName": "default_target_type",
-            "fieldType": "select",
-            "label": "默认通知类型",
-            "helpText": "孤儿下载通知失败时使用的默认通知类型",
-            "options": [
-                {"value": "router", "label": "通过路由发送"},
-                {"value": "channel", "label": "通过频道发送"}
-            ],
-            "defaultValue": "router"
-        },
-        {
-            "fieldName": "default_route_id",
-            "fieldType": "string",
-            "label": "默认路由ID",
-            "helpText": "孤儿下载通知失败时使用的默认路由ID",
-            "defaultValue": ""
-        },
-        {
-            "fieldName": "default_channel",
-            "fieldType": "string",
-            "label": "默认频道名称",
-            "helpText": "孤儿下载通知失败时使用的默认频道名称",
-            "defaultValue": ""
-        },
-        {
-            "fieldName": "default_user",
-            "fieldType": "string",
-            "label": "默认通知用户",
-            "helpText": "孤儿下载通知失败时使用的默认企业微信用户ID",
+            "helpText": "接收孤儿下载通知的用户ID，留空则发送给默认用户",
             "defaultValue": ""
         },
         {

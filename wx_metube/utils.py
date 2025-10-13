@@ -40,11 +40,6 @@ class Config:
         self.notify_orphan_downloads = self._config.get('notify_orphan_downloads', False)
         self.orphan_download_user = self._config.get('orphan_download_user', '')
         
-        # 默认通知通道配置（用于孤儿下载通知失败时的备用方案）
-        self.default_target_type = self._config.get('default_target_type', 'router')
-        self.default_route_id = self._config.get('default_route_id', '')
-        self.default_channel = self._config.get('default_channel', '')
-        self.default_user = self._config.get('default_user', '')
         
         # 解析支持的域名
         if self.supported_domains:

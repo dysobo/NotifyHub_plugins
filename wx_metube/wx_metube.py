@@ -884,57 +884,40 @@ class DownloadMonitor:
 
 注意：此下载未通过企业微信提交，系统自动检测到完成状态。"""
             
-            # 优先尝试发送给配置的孤儿下载用户
-            notification_sent = False
+            # 确定通知接收用户
+            target_user = None
             
             if config.notify_orphan_downloads and config.orphan_download_user:
-                logger.info(f"准备发送孤儿下载通知给指定用户: {config.orphan_download_user}")
-                success = self.message_sender.send_text_message(
-                    completion_message, 
-                    config.orphan_download_user
-                )
-                
-                if success:
-                    logger.info(f"孤儿下载通知发送成功: {title}")
-                    notification_sent = True
-                else:
-                    logger.warning(f"孤儿下载通知发送失败: {title}")
+                # 优先使用配置的孤儿下载用户
+                target_user = config.orphan_download_user
+                logger.info(f"使用配置的孤儿下载通知用户: {target_user}")
+            else:
+                # 使用默认用户（从企业微信配置中获取）
+                # 这里可以从企业微信配置中获取默认用户，或者使用一个合理的默认值
+                # 暂时先尝试从配置中获取，如果没有则跳过通知
+                target_user = getattr(config, 'orphan_download_user', None)
+                if not target_user:
+                    # 如果没有配置任何用户，可以尝试从企业微信配置中获取默认用户
+                    # 或者使用一个固定的默认用户ID
+                    logger.warning(f"未配置孤儿下载通知用户，跳过通知: {title}")
+                    return
             
-            # 如果指定用户通知失败或未配置，则使用默认通道推送
-            if not notification_sent:
-                logger.info(f"尝试通过默认通道推送孤儿下载通知: {title}")
-                
-                # 获取默认通知配置
-                default_route_id = getattr(config, 'default_route_id', None)
-                default_channel = getattr(config, 'default_channel', None)
-                default_target_type = getattr(config, 'default_target_type', 'router')
-                
-                logger.info(f"默认通知配置 - 类型: {default_target_type}, 路由ID: {default_route_id}, 频道: {default_channel}")
-                
-                # 使用插件自己的企业微信通道发送通知
+            # 发送孤儿下载通知
+            if target_user:
                 try:
-                    logger.info(f"正在通过企业微信通道发送孤儿下载通知...")
+                    logger.info(f"正在发送孤儿下载通知给用户: {target_user}")
+                    success = self.message_sender.send_text_message(
+                        completion_message, 
+                        target_user
+                    )
                     
-                    # 构建完整的通知消息
-                    full_message = f"🎉 下载完成通知\n\n{completion_message}"
-                    
-                    # 使用插件自己的消息发送器发送到默认用户
-                    default_user = getattr(config, 'default_user', None)
-                    if default_user:
-                        success = self.message_sender.send_text_message(full_message, default_user)
-                        if success:
-                            logger.info(f"通过企业微信通道发送孤儿下载通知成功: {title}")
-                            notification_sent = True
-                        else:
-                            logger.error(f"通过企业微信通道发送孤儿下载通知失败: {title}")
+                    if success:
+                        logger.info(f"孤儿下载通知发送成功: {title}")
                     else:
-                        logger.warning(f"未配置默认用户，无法发送企业微信通知")
+                        logger.error(f"孤儿下载通知发送失败: {title}")
                         
                 except Exception as e:
-                    logger.error(f"通过企业微信通道发送孤儿下载通知异常: {e}")
-                
-                if not notification_sent:
-                    logger.warning(f"所有通知方式均失败，孤儿下载通知未发送: {title}")
+                    logger.error(f"发送孤儿下载通知异常: {e}")
             
             # 标记为已处理
             processed_downloads_cache.set(orphan_cache_key, {
