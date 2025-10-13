@@ -909,10 +909,13 @@ class DownloadMonitor:
                 default_channel = getattr(config, 'default_channel', None)
                 default_target_type = getattr(config, 'default_target_type', 'router')
                 
+                logger.info(f"默认通知配置 - 类型: {default_target_type}, 路由ID: {default_route_id}, 频道: {default_channel}")
+                
                 if default_target_type == 'router' and default_route_id:
                     try:
                         # 通过路由发送通知
                         from syno_chat_webhook.server import server
+                        logger.info(f"正在通过路由 {default_route_id} 发送孤儿下载通知...")
                         server.send_notify_by_router(
                             route_id=default_route_id,
                             title="🎉 下载完成通知",
@@ -929,6 +932,7 @@ class DownloadMonitor:
                     try:
                         # 通过频道发送通知
                         from syno_chat_webhook.server import server
+                        logger.info(f"正在通过频道 {default_channel} 发送孤儿下载通知...")
                         server.send_notify_by_channel(
                             channel_name=default_channel,
                             title="🎉 下载完成通知",
@@ -940,6 +944,8 @@ class DownloadMonitor:
                         notification_sent = True
                     except Exception as e:
                         logger.error(f"通过默认频道发送孤儿下载通知失败: {e}")
+                else:
+                    logger.warning(f"默认通知配置不完整 - 类型: {default_target_type}, 路由ID: {default_route_id}, 频道: {default_channel}")
                 
                 if not notification_sent:
                     logger.warning(f"所有通知方式均失败，孤儿下载通知未发送: {title}")
