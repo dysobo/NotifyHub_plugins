@@ -888,55 +888,32 @@ class DownloadMonitor:
             target_user = None
             
             if config.notify_orphan_downloads and config.orphan_download_user:
-                # 优先使用配置的孤儿下载用户
+                # 使用配置的孤儿下载用户
                 target_user = config.orphan_download_user
                 logger.info(f"使用配置的孤儿下载通知用户: {target_user}")
-            elif config.default_user:
-                # 使用默认用户
-                target_user = config.default_user
-                logger.info(f"使用默认通知用户: {target_user}")
             else:
-                # 如果都没有配置，跳过通知
-                logger.warning(f"未配置孤儿下载通知用户和默认用户，跳过通知: {title}")
+                # 如果没有配置，跳过通知
+                logger.warning(f"未配置孤儿下载通知用户，跳过通知: {title}")
                 return
             
             # 发送孤儿下载通知
             notification_sent = False
             
-            # 尝试发送给目标用户
-            if target_user:
-                try:
-                    logger.info(f"正在发送孤儿下载通知给用户: {target_user}")
-                    success = self.message_sender.send_text_message(
-                        completion_message, 
-                        target_user
-                    )
+            try:
+                logger.info(f"正在发送孤儿下载通知给用户: {target_user}")
+                success = self.message_sender.send_text_message(
+                    completion_message, 
+                    target_user
+                )
+                
+                if success:
+                    logger.info(f"孤儿下载通知发送成功: {title}")
+                    notification_sent = True
+                else:
+                    logger.error(f"孤儿下载通知发送失败: {title}")
                     
-                    if success:
-                        logger.info(f"孤儿下载通知发送成功: {title}")
-                        notification_sent = True
-                    else:
-                        logger.error(f"孤儿下载通知发送失败: {title}")
-                        
-                        # 如果指定用户发送失败，且当前使用的是指定用户，尝试使用默认用户
-                        if (config.notify_orphan_downloads and config.orphan_download_user and 
-                            target_user == config.orphan_download_user and config.default_user):
-                            logger.info(f"指定用户发送失败，尝试使用默认用户: {config.default_user}")
-                            try:
-                                success = self.message_sender.send_text_message(
-                                    completion_message, 
-                                    config.default_user
-                                )
-                                if success:
-                                    logger.info(f"通过默认用户发送孤儿下载通知成功: {title}")
-                                    notification_sent = True
-                                else:
-                                    logger.error(f"默认用户发送孤儿下载通知也失败: {title}")
-                            except Exception as e:
-                                logger.error(f"默认用户发送孤儿下载通知异常: {e}")
-                        
-                except Exception as e:
-                    logger.error(f"发送孤儿下载通知异常: {e}")
+            except Exception as e:
+                logger.error(f"发送孤儿下载通知异常: {e}")
             
             # 标记为已处理
             processed_downloads_cache.set(orphan_cache_key, {

@@ -5,7 +5,7 @@
     "author": "dysobo",
     "logo": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
     "thumbnailurl": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "documentation": "",
     "path": "/wx_metube",
     "configField": [
@@ -104,14 +104,7 @@
             "fieldName": "orphan_download_user",
             "fieldType": "string",
             "label": "孤儿下载通知用户",
-            "helpText": "接收孤儿下载通知的用户ID，留空则发送给默认用户",
-            "defaultValue": ""
-        },
-        {
-            "fieldName": "default_user",
-            "fieldType": "string",
-            "label": "默认通知用户",
-            "helpText": "当未配置孤儿下载通知用户时使用的默认企业微信用户ID",
+            "helpText": "接收孤儿下载通知的用户ID，留空则不发送通知",
             "defaultValue": ""
         },
         {
