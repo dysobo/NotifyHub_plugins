@@ -876,16 +876,6 @@ class DownloadMonitor:
             else:
                 download_url = f"{config.metube_url}/download/"
             
-            # 检查是否启用孤儿下载通知
-            if not config.notify_orphan_downloads:
-                logger.debug(f"孤儿下载通知已禁用: {url}")
-                return
-            
-            # 检查是否有指定的通知用户
-            if not config.orphan_download_user:
-                logger.debug(f"未配置孤儿下载通知用户: {url}")
-                return
-            
             completion_message = f"""🎉 发现已完成下载！
 
 📹 标题：{title}
@@ -894,18 +884,65 @@ class DownloadMonitor:
 
 注意：此下载未通过企业微信提交，系统自动检测到完成状态。"""
             
-            logger.info(f"准备发送孤儿下载通知给用户: {config.orphan_download_user}")
+            # 优先尝试发送给配置的孤儿下载用户
+            notification_sent = False
             
-            # 发送孤儿下载通知
-            success = self.message_sender.send_text_message(
-                completion_message, 
-                config.orphan_download_user
-            )
+            if config.notify_orphan_downloads and config.orphan_download_user:
+                logger.info(f"准备发送孤儿下载通知给指定用户: {config.orphan_download_user}")
+                success = self.message_sender.send_text_message(
+                    completion_message, 
+                    config.orphan_download_user
+                )
+                
+                if success:
+                    logger.info(f"孤儿下载通知发送成功: {title}")
+                    notification_sent = True
+                else:
+                    logger.warning(f"孤儿下载通知发送失败: {title}")
             
-            if success:
-                logger.info(f"孤儿下载通知发送成功: {title}")
-            else:
-                logger.error(f"孤儿下载通知发送失败: {title}")
+            # 如果指定用户通知失败或未配置，则使用默认通道推送
+            if not notification_sent:
+                logger.info(f"尝试通过默认通道推送孤儿下载通知: {title}")
+                
+                # 获取默认通知配置
+                default_route_id = getattr(config, 'default_route_id', None)
+                default_channel = getattr(config, 'default_channel', None)
+                default_target_type = getattr(config, 'default_target_type', 'router')
+                
+                if default_target_type == 'router' and default_route_id:
+                    try:
+                        # 通过路由发送通知
+                        from syno_chat_webhook.server import server
+                        server.send_notify_by_router(
+                            route_id=default_route_id,
+                            title="🎉 下载完成通知",
+                            content=completion_message,
+                            push_img_url=None,
+                            push_link_url=None
+                        )
+                        logger.info(f"通过默认路由发送孤儿下载通知成功: {title}")
+                        notification_sent = True
+                    except Exception as e:
+                        logger.error(f"通过默认路由发送孤儿下载通知失败: {e}")
+                        
+                elif default_target_type == 'channel' and default_channel:
+                    try:
+                        # 通过频道发送通知
+                        from syno_chat_webhook.server import server
+                        server.send_notify_by_channel(
+                            channel_name=default_channel,
+                            title="🎉 下载完成通知",
+                            content=completion_message,
+                            push_img_url=None,
+                            push_link_url=None
+                        )
+                        logger.info(f"通过默认频道发送孤儿下载通知成功: {title}")
+                        notification_sent = True
+                    except Exception as e:
+                        logger.error(f"通过默认频道发送孤儿下载通知失败: {e}")
+                
+                if not notification_sent:
+                    logger.warning(f"所有通知方式均失败，孤儿下载通知未发送: {title}")
             
             # 标记为已处理
             processed_downloads_cache.set(orphan_cache_key, {
@@ -913,7 +950,8 @@ class DownloadMonitor:
                 'processed_time': datetime.datetime.now(),
                 'title': title,
                 'filename': filename,
-                'download_url': download_url
+                'download_url': download_url,
+                'notification_sent': notification_sent
             })
             
         except Exception as e:
