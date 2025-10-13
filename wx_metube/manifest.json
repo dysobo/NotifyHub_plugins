@@ -5,7 +5,7 @@
     "author": "dysobo",
     "logo": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
     "thumbnailurl": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/Youtubedl_B.png",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "documentation": "",
     "path": "/wx_metube",
     "configField": [
@@ -92,20 +92,6 @@
             "label": "自动开始下载",
             "helpText": "提交下载后是否自动开始下载",
             "defaultValue": true
-        },
-        {
-            "fieldName": "notify_orphan_downloads",
-            "fieldType": "switch",
-            "label": "通知孤儿下载",
-            "helpText": "是否通知通过其他方式提交的已完成下载",
-            "defaultValue": false
-        },
-        {
-            "fieldName": "orphan_download_user",
-            "fieldType": "string",
-            "label": "孤儿下载通知用户",
-            "helpText": "接收孤儿下载通知的用户ID，留空则不发送通知",
-            "defaultValue": ""
         },
         {
             "fieldName": "proxy",

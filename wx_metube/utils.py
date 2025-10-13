@@ -36,9 +36,6 @@ class Config:
         self.proxy = self._config.get('proxy', '')
         self.supported_domains = self._config.get('supported_domains', 'youtube.com,youtu.be,bilibili.com')
         
-        # 孤儿下载通知配置
-        self.notify_orphan_downloads = self._config.get('notify_orphan_downloads', False)
-        self.orphan_download_user = self._config.get('orphan_download_user', '')
         
         # 解析支持的域名
         if self.supported_domains:

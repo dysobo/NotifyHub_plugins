@@ -794,8 +794,6 @@ class DownloadMonitor:
             
             if not download_task:
                 logger.warning(f"未找到下载任务记录，无法发送通知: {url}")
-                # 检查是否应该为孤儿下载发送通知
-                await self._handle_orphan_download(download_item)
                 return
             
             # 检查是否已经通知过
@@ -853,85 +851,6 @@ class DownloadMonitor:
         except Exception as e:
             logger.error(f"处理完成下载异常: {e}")
     
-    async def _handle_orphan_download(self, download_item: Dict[str, Any]):
-        """处理孤儿下载（没有对应任务记录的已完成下载）"""
-        try:
-            url = download_item.get('url')
-            title = download_item.get('title', '未知标题')
-            filename = download_item.get('filename')
-            
-            logger.info(f"处理孤儿下载: {title}")
-            
-            # 检查是否已经处理过这个孤儿下载
-            orphan_cache_key = f"orphan_{url}"
-            cached_result = processed_downloads_cache.get(orphan_cache_key)
-            if cached_result:
-                logger.info(f"孤儿下载已处理过: {url}, 跳过通知")
-                return
-            else:
-                logger.info(f"孤儿下载未处理过: {url}, 继续处理")
-            
-            # 构建下载链接
-            if filename:
-                import urllib.parse
-                encoded_filename = urllib.parse.quote(filename)
-                download_url = f"{config.metube_url}/download/{encoded_filename}"
-            else:
-                download_url = f"{config.metube_url}/download/"
-            
-            completion_message = f"""🎉 发现已完成下载！
-
-📹 标题：{title}
-📁 文件：{filename or '未知'}
-🔗 下载链接：{download_url}
-
-注意：此下载未通过企业微信提交，系统自动检测到完成状态。"""
-            
-            # 确定通知接收用户
-            target_user = None
-            
-            logger.info(f"检查孤儿下载配置 - 启用: {config.notify_orphan_downloads}, 用户: {config.orphan_download_user}")
-            
-            if config.notify_orphan_downloads and config.orphan_download_user:
-                # 使用配置的孤儿下载用户
-                target_user = config.orphan_download_user
-                logger.info(f"使用配置的孤儿下载通知用户: {target_user}")
-            else:
-                # 如果没有配置，跳过通知
-                logger.warning(f"未配置孤儿下载通知用户，跳过通知: {title} (启用: {config.notify_orphan_downloads}, 用户: {config.orphan_download_user})")
-                return
-            
-            # 发送孤儿下载通知
-            notification_sent = False
-            
-            try:
-                logger.info(f"正在发送孤儿下载通知给用户: {target_user}")
-                success = self.message_sender.send_text_message(
-                    completion_message, 
-                    target_user
-                )
-                
-                if success:
-                    logger.info(f"孤儿下载通知发送成功: {title}")
-                    notification_sent = True
-                else:
-                    logger.error(f"孤儿下载通知发送失败: {title}")
-                    
-            except Exception as e:
-                logger.error(f"发送孤儿下载通知异常: {e}")
-            
-            # 标记为已处理
-            processed_downloads_cache.set(orphan_cache_key, {
-                'processed': True,
-                'processed_time': datetime.datetime.now(),
-                'title': title,
-                'filename': filename,
-                'download_url': download_url,
-                'notification_sent': notification_sent
-            })
-            
-        except Exception as e:
-            logger.error(f"处理孤儿下载异常: {e}")
     
     def add_active_task(self, url: str, user_id: str, title: str = "获取中..."):
         """添加活跃下载任务"""
