@@ -7,6 +7,7 @@ import logging
 import urllib.parse
 import time
 import os
+import re
 import aiohttp
 import aiofiles
 from datetime import datetime
@@ -117,6 +118,40 @@ async def test_send() -> Dict[str, Any]:
     except Exception as e:
         logger.error("Test send failed: %s", e)
         raise HTTPException(status_code=500, detail=f"Test send failed: {str(e)}")
+
+
+@qq_bridge_router.post("/test-media")
+async def test_media_send() -> Dict[str, Any]:
+    """Test endpoint to send a notification with media link."""
+    config = _get_config()
+    target_type: str = (config.get('send_target_type') or 'router').strip()
+    
+    # Prepare test message with media link
+    title_prefix: str = config.get('title_prefix') or '[QQ群]'
+    title = f"{title_prefix} [媒体测试] #测试群 @测试用户"
+    content = f"这是一条包含媒体链接的测试消息，发送时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    
+    # Generate a test media link
+    test_link = f"https://nh.dysobo.cn:888/api/plugins/qq_bridge/media/test_image_{int(time.time())}.jpg"
+    
+    try:
+        if target_type == 'router':
+            route_id: Optional[str] = config.get('bind_router')
+            if not route_id:
+                raise HTTPException(status_code=400, detail='route not configured')
+            server.send_notify_by_router(route_id=route_id, title=title, content=content, push_img_url=None, push_link_url=test_link)
+            return {"ok": True, "message": f"Test media notification sent to router: {route_id}", "test_link": test_link}
+        elif target_type == 'channel':
+            channel_name: Optional[str] = config.get('bind_channel')
+            if not channel_name:
+                raise HTTPException(status_code=400, detail='channel not configured')
+            server.send_notify_by_channel(channel_name=channel_name, title=title, content=content, push_img_url=None, push_link_url=test_link)
+            return {"ok": True, "message": f"Test media notification sent to channel: {channel_name}", "test_link": test_link}
+        else:
+            raise HTTPException(status_code=400, detail='invalid target type')
+    except Exception as e:
+        logger.error("Test media send failed: %s", e)
+        raise HTTPException(status_code=500, detail=f"Test media send failed: {str(e)}")
 
 
 @qq_bridge_router.get("/debug/last-message")
@@ -698,20 +733,34 @@ async def webhook(request: Request, x_signature: Optional[str] = Header(default=
     
     # Add media links to content for enterprise WeChat
     content = parsed_text
+    push_link_url: Optional[str] = None
+    
     if media_links:
-        content += "\n\n📎 媒体文件:\n" + "\n".join(media_links)
+        # 提取第一个媒体链接作为可点击链接
+        first_media_link = media_links[0]
+        # 从链接文本中提取URL
+        url_match = re.search(r'https?://[^\s]+', first_media_link)
+        if url_match:
+            push_link_url = url_match.group()
+            logger.info("qq_bridge extracted clickable link: %s", push_link_url)
+        
+        # 如果只有一个媒体文件，简化内容显示
+        if len(media_links) == 1:
+            content += f"\n\n📎 {first_media_link.split(':', 1)[0] if ':' in first_media_link else '媒体文件'}"
+        else:
+            content += "\n\n📎 媒体文件:\n" + "\n".join(media_links)
 
     target_type: str = (config.get('send_target_type') or 'router').strip()
     if target_type == 'router':
         route_id: Optional[str] = config.get('bind_router')
         if not route_id:
             raise HTTPException(status_code=400, detail='route not configured')
-        server.send_notify_by_router(route_id=route_id, title=title, content=content, push_img_url=image_url, push_link_url=None)
+        server.send_notify_by_router(route_id=route_id, title=title, content=content, push_img_url=image_url, push_link_url=push_link_url)
     elif target_type == 'channel':
         channel_name: Optional[str] = config.get('bind_channel')
         if not channel_name:
             raise HTTPException(status_code=400, detail='channel not configured')
-        server.send_notify_by_channel(channel_name=channel_name, title=title, content=content, push_img_url=image_url, push_link_url=None)
+        server.send_notify_by_channel(channel_name=channel_name, title=title, content=content, push_img_url=image_url, push_link_url=push_link_url)
     else:
         raise HTTPException(status_code=400, detail='invalid target type')
 
@@ -797,17 +846,31 @@ async def _ws_loop(onebot_ws_url: str, access_token: Optional[str], allowed_grou
                     
                     # Add media links to content for enterprise WeChat
                     content = parsed_text
+                    push_link_url: Optional[str] = None
+                    
                     if media_links:
-                        content += "\n\n📎 媒体文件:\n" + "\n".join(media_links)
+                        # 提取第一个媒体链接作为可点击链接
+                        first_media_link = media_links[0]
+                        # 从链接文本中提取URL
+                        url_match = re.search(r'https?://[^\s]+', first_media_link)
+                        if url_match:
+                            push_link_url = url_match.group()
+                            logger.info("qq_bridge WS extracted clickable link: %s", push_link_url)
+                        
+                        # 如果只有一个媒体文件，简化内容显示
+                        if len(media_links) == 1:
+                            content += f"\n\n📎 {first_media_link.split(':', 1)[0] if ':' in first_media_link else '媒体文件'}"
+                        else:
+                            content += "\n\n📎 媒体文件:\n" + "\n".join(media_links)
                     
                     logger.info("qq_bridge WS forwarding message: type=%s, user=%s, content=%s", message_type, user_id, parsed_text[:50])
                     
                     try:
                         if target_type == 'router' and route_id:
-                            server.send_notify_by_router(route_id=route_id, title=title, content=content, push_img_url=image_url, push_link_url=None)
+                            server.send_notify_by_router(route_id=route_id, title=title, content=content, push_img_url=image_url, push_link_url=push_link_url)
                             logger.info("qq_bridge WS sent to router: %s", route_id)
                         elif target_type == 'channel' and channel_name:
-                            server.send_notify_by_channel(channel_name=channel_name, title=title, content=content, push_img_url=image_url, push_link_url=None)
+                            server.send_notify_by_channel(channel_name=channel_name, title=title, content=content, push_img_url=image_url, push_link_url=push_link_url)
                             logger.info("qq_bridge WS sent to channel: %s", channel_name)
                         else:
                             logger.warning("qq_bridge WS no valid target configured")

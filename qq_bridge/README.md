@@ -1,4 +1,4 @@
-QQ Group Bridge Plugin (OneBot 12)
+QQ Group Bridge Plugin (OneBot 12) - v0.0.2
 
 - Place under `/data/plugins/qq_bridge` and restart NotifyHub
 - Webhook: `POST {site_url}/api/plugins/qq_bridge/webhook`
@@ -12,6 +12,7 @@ Features
 - **Rich Message Parsing**: Images, emojis, @mentions, replies, voice, video, files, location, shares
 - **Media Storage**: Automatically downloads and stores images, voice, video files
 - **Media Links**: Generates accessible links for downloaded media files
+- **Clickable Links**: First media link is sent as a clickable link via push_link_url parameter
 - **OneBot File API**: Automatically resolves file IDs to download URLs using OneBot API
 - **WebSocket Support**: Real-time OneBot connection with auto-reconnect
 - **HTTP Webhook**: Fallback webhook support for OneBot implementations
@@ -51,9 +52,12 @@ curl http://your-notifyhub/api/plugins/qq_bridge/status
 ```bash
 # 发送测试通知
 curl -X POST http://your-notifyhub/api/plugins/qq_bridge/test
+
+# 发送包含可点击链接的测试通知
+curl -X POST http://your-notifyhub/api/plugins/qq_bridge/test-media
 ```
 
-会根据当前配置发送一条测试消息到指定的 router 或 channel。
+会根据当前配置发送一条测试消息到指定的 router 或 channel。`test-media` 端点会发送包含可点击链接的测试消息，用于验证链接点击功能。
 
 ### 媒体文件处理
 插件会自动下载并存储以下类型的媒体文件：
@@ -87,5 +91,21 @@ secret: your-secret-if-needed
 ```
 
 Standard Reference: [OneBot 12 Documentation](https://onebot.dev/)
+
+## 版本历史
+
+### v0.0.2 (2024-12-19)
+- ✨ **新增功能**：支持媒体文件可点击链接
+- 🔧 **优化**：当消息包含媒体文件时，第一个媒体链接将作为可点击链接发送
+- 🔧 **优化**：改进媒体文件显示逻辑，单个媒体文件时简化显示
+- 🧪 **新增**：添加 `/test-media` 测试端点，用于测试可点击链接功能
+- 📝 **文档**：更新帮助文档，说明可点击链接功能
+
+### v0.0.1
+- 🎉 **初始版本**：基本的QQ群消息转发功能
+- 🔧 **支持**：OneBot 12标准对接（HTTP webhook + WebSocket）
+- 🔧 **支持**：图片、语音、视频等媒体文件下载和链接生成
+- 🔧 **支持**：消息过滤（群组和用户白名单）
+- 🔧 **支持**：企业微信推送
 
 
