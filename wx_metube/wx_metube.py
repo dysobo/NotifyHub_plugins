@@ -911,41 +911,27 @@ class DownloadMonitor:
                 
                 logger.info(f"默认通知配置 - 类型: {default_target_type}, 路由ID: {default_route_id}, 频道: {default_channel}")
                 
-                if default_target_type == 'router' and default_route_id:
-                    try:
-                        # 通过路由发送通知
-                        from syno_chat_webhook.server import server
-                        logger.info(f"正在通过路由 {default_route_id} 发送孤儿下载通知...")
-                        server.send_notify_by_router(
-                            route_id=default_route_id,
-                            title="🎉 下载完成通知",
-                            content=completion_message,
-                            push_img_url=None,
-                            push_link_url=None
-                        )
-                        logger.info(f"通过默认路由发送孤儿下载通知成功: {title}")
-                        notification_sent = True
-                    except Exception as e:
-                        logger.error(f"通过默认路由发送孤儿下载通知失败: {e}")
+                # 使用插件自己的企业微信通道发送通知
+                try:
+                    logger.info(f"正在通过企业微信通道发送孤儿下载通知...")
+                    
+                    # 构建完整的通知消息
+                    full_message = f"🎉 下载完成通知\n\n{completion_message}"
+                    
+                    # 使用插件自己的消息发送器发送到默认用户
+                    default_user = getattr(config, 'default_user', None)
+                    if default_user:
+                        success = self.message_sender.send_text_message(full_message, default_user)
+                        if success:
+                            logger.info(f"通过企业微信通道发送孤儿下载通知成功: {title}")
+                            notification_sent = True
+                        else:
+                            logger.error(f"通过企业微信通道发送孤儿下载通知失败: {title}")
+                    else:
+                        logger.warning(f"未配置默认用户，无法发送企业微信通知")
                         
-                elif default_target_type == 'channel' and default_channel:
-                    try:
-                        # 通过频道发送通知
-                        from syno_chat_webhook.server import server
-                        logger.info(f"正在通过频道 {default_channel} 发送孤儿下载通知...")
-                        server.send_notify_by_channel(
-                            channel_name=default_channel,
-                            title="🎉 下载完成通知",
-                            content=completion_message,
-                            push_img_url=None,
-                            push_link_url=None
-                        )
-                        logger.info(f"通过默认频道发送孤儿下载通知成功: {title}")
-                        notification_sent = True
-                    except Exception as e:
-                        logger.error(f"通过默认频道发送孤儿下载通知失败: {e}")
-                else:
-                    logger.warning(f"默认通知配置不完整 - 类型: {default_target_type}, 路由ID: {default_route_id}, 频道: {default_channel}")
+                except Exception as e:
+                    logger.error(f"通过企业微信通道发送孤儿下载通知异常: {e}")
                 
                 if not notification_sent:
                     logger.warning(f"所有通知方式均失败，孤儿下载通知未发送: {title}")

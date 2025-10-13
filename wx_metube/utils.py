@@ -44,6 +44,7 @@ class Config:
         self.default_target_type = self._config.get('default_target_type', 'router')
         self.default_route_id = self._config.get('default_route_id', '')
         self.default_channel = self._config.get('default_channel', '')
+        self.default_user = self._config.get('default_user', '')
         
         # 解析支持的域名
         if self.supported_domains:
