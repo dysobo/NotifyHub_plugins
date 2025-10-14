@@ -41,6 +41,7 @@ PLUGIN_NAME = "企业微信MeTube下载器"
 token_cache = Cache(maxsize=1)
 download_cache = Cache(maxsize=5000, ttl=86400)  # 下载记录缓存24小时
 processed_downloads_cache = Cache(maxsize=10000, ttl=604800)  # 已处理下载缓存7天
+download_count_cache = Cache(maxsize=10, ttl=86400)  # 下载数量缓存，用于避免重复检查
 
 # 图片缓存目录
 IMAGE_CACHE_DIR = Path("/data/plugins/wx_metube/images")
@@ -690,7 +691,10 @@ class DownloadMonitor:
             await self._process_completed_downloads(completed_downloads)
             
             self.last_check_time = current_time
-            logger.debug(f"下载状态检查完成，活跃任务: {len(self.active_tasks)}, 已完成下载: {len(completed_downloads)}")
+            
+            # 减少日志输出频率，只在有活跃任务或有新完成下载时输出
+            if len(self.active_tasks) > 0:
+                logger.debug(f"下载状态检查完成，活跃任务: {len(self.active_tasks)}, 已完成下载: {len(completed_downloads)}")
             
         except Exception as e:
             logger.error(f"检查下载状态异常: {e}")
@@ -742,8 +746,36 @@ class DownloadMonitor:
         """处理已完成的下载"""
         if not completed_downloads:
             return
-            
-        logger.debug(f"检查已完成下载数量: {len(completed_downloads)}")
+        
+        current_count = len(completed_downloads)
+        current_time = datetime.datetime.now()
+        
+        # 获取上次检查的下载数量
+        last_count = download_count_cache.get('last_completed_count', 0)
+        last_check_date = download_count_cache.get('last_full_check_date')
+        
+        # 检查是否需要全量检查（每天一次）
+        need_full_check = False
+        if last_check_date is None:
+            # 首次运行，需要全量检查
+            need_full_check = True
+            logger.info("首次运行，执行全量检查已完成下载")
+        else:
+            # 检查是否跨天了
+            if current_time.date() > last_check_date.date():
+                need_full_check = True
+                logger.info(f"跨天检测，执行全量检查已完成下载（上次检查：{last_check_date.date()}，本次：{current_time.date()}）")
+        
+        # 如果下载数量没有增加且不需要全量检查，则跳过
+        if not need_full_check and current_count <= last_count:
+            logger.debug(f"下载完成数量未增加（当前：{current_count}，上次：{last_count}），跳过检查")
+            return
+        
+        # 记录本次检查信息
+        download_count_cache.set('last_completed_count', current_count)
+        download_count_cache.set('last_full_check_date', current_time)
+        
+        logger.debug(f"检查已完成下载数量: {current_count}（上次：{last_count}）")
         processed_count = 0
         
         for download_item in completed_downloads:
@@ -757,7 +789,9 @@ class DownloadMonitor:
             # 检查是否已经处理过这个下载
             cache_key = f"processed_{url}"
             if processed_downloads_cache.get(cache_key):
-                logger.debug(f"下载已完成且已处理过，跳过: {url}")
+                # 只在全量检查时输出调试信息
+                if need_full_check:
+                    logger.debug(f"下载已完成且已处理过，跳过: {url}")
                 continue
             
             logger.info(f"发现新的已完成下载: {url}")
@@ -766,6 +800,8 @@ class DownloadMonitor:
         
         if processed_count > 0:
             logger.info(f"本次处理了 {processed_count} 个新的已完成下载")
+        elif need_full_check:
+            logger.info("全量检查完成，没有发现新的已完成下载")
     
     async def _process_completed_download(self, download_item: Dict[str, Any]):
         """处理单个已完成的下载"""
@@ -1306,3 +1342,53 @@ async def clear_processed_cache():
     except Exception as e:
         logger.error(f"清理已处理下载缓存失败: {e}")
         raise HTTPException(status_code=500, detail=f"清理缓存失败: {e}")
+
+@wx_metube_router.post("/reset-download-count-cache")
+async def reset_download_count_cache():
+    """重置下载数量缓存，强制下次检查进行全量检查"""
+    try:
+        # 清除下载数量缓存
+        download_count_cache.clear()
+        
+        return {
+            "success": True,
+            "message": "下载数量缓存已重置，下次检查将进行全量检查"
+        }
+        
+    except Exception as e:
+        logger.error(f"重置下载数量缓存失败: {e}")
+        raise HTTPException(status_code=500, detail=f"重置缓存失败: {e}")
+
+@wx_metube_router.get("/cache-status")
+async def get_cache_status():
+    """获取缓存状态信息"""
+    try:
+        # 获取各种缓存的状态
+        cache_status = {
+            "download_count_cache": {
+                "last_completed_count": download_count_cache.get('last_completed_count', 0),
+                "last_full_check_date": download_count_cache.get('last_full_check_date').isoformat() if download_count_cache.get('last_full_check_date') else None,
+                "cache_size": len(download_count_cache)
+            },
+            "processed_downloads_cache": {
+                "cache_size": len(processed_downloads_cache),
+                "sample_keys": list(processed_downloads_cache.keys())[:5]  # 显示前5个key作为示例
+            },
+            "download_cache": {
+                "cache_size": len(download_cache)
+            },
+            "token_cache": {
+                "cache_size": len(token_cache),
+                "has_token": bool(token_cache.get('access_token'))
+            }
+        }
+        
+        return {
+            "success": True,
+            "cache_status": cache_status,
+            "current_time": datetime.datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"获取缓存状态失败: {e}")
+        raise HTTPException(status_code=500, detail=f"获取缓存状态失败: {e}")
