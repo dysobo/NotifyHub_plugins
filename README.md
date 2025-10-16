@@ -56,8 +56,6 @@
 
 ## 📊 仓库统计
 
-<div align="center">
-
 ![GitHub stars](https://img.shields.io/github/stars/dysobo/NotifyHub_plugins?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/dysobo/NotifyHub_plugins?style=social)
 ![GitHub watchers](https://img.shields.io/github/watchers/dysobo/NotifyHub_plugins?style=social)
@@ -89,4 +87,4 @@
 
 </div>
 
-*最后更新：2024年10月*
+*最后更新：2025年10月*
