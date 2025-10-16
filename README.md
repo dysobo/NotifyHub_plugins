@@ -1,15 +1,6 @@
 # NotifyHub 插件集合
 
-<div align="center">
-
-![GitHub stars](https://img.shields.io/github/stars/dysobo/NotifyHub_plugins?style=social)
-![GitHub forks](https://img.shields.io/github/forks/dysobo/NotifyHub_plugins?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/dysobo/NotifyHub_plugins?style=social)
-![GitHub repo size](https://img.shields.io/github/repo-size/dysobo/NotifyHub_plugins?color=green)
-
-</div>
-
-> **免责声明**：都是纯自用，不可靠，有问题请自改。cursor写的，我是一句看不懂 😅  
+> **免责声明**：都是dysobo纯自用，不可靠，有问题请自改，随便改。cursor写的，我是一句看不懂 😅  
 > 里面AI写的当不得真，说下实际情况：
 
 ## 📋 插件列表
@@ -66,6 +57,13 @@
 ## 📊 仓库统计
 
 <div align="center">
+
+![GitHub stars](https://img.shields.io/github/stars/dysobo/NotifyHub_plugins?style=social)
+![GitHub forks](https://img.shields.io/github/forks/dysobo/NotifyHub_plugins?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/dysobo/NotifyHub_plugins?style=social)
+![GitHub repo size](https://img.shields.io/github/repo-size/dysobo/NotifyHub_plugins?color=green)
+
+</div>
 
 ### 📈 代码统计
 ![GitHub language count](https://img.shields.io/github/languages/count/dysobo/NotifyHub_plugins)
