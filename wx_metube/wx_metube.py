@@ -296,13 +296,14 @@ class ImageCacheManager:
             from notifyhub.controller.server import server
             site_url = server.site_url
             if not site_url:
-                # 如果无法获取站点地址，使用默认配置
-                base_url = config.metube_url.replace(':8081', ':888')
+                # 如果无法获取站点地址，返回相对路径
+                logger.warning("无法获取NotifyHub站点地址，使用相对路径")
+                base_url = ""
             else:
                 base_url = site_url.rstrip('/')
         except Exception as e:
-            logger.warning(f"无法获取NotifyHub站点地址，使用默认配置: {e}")
-            base_url = config.metube_url.replace(':8081', ':888')
+            logger.warning(f"无法获取NotifyHub站点地址: {e}")
+            base_url = ""
         
         return f"{base_url}/api/plugins/wx_metube/images/{filename}"
     
