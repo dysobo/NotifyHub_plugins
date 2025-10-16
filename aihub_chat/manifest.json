@@ -1,0 +1,205 @@
+{
+  "id": "aihub_chat",
+  "name": "AIHub 智能对话",
+  "description": "对接 AIHubMix 平台，提供 AI 对话、图片分析生成、语音处理、Web 搜索等功能",
+  "author": "dysobo",
+  "logo": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/AI_A.png",
+  "thumbnailurl": "https://icon.dysobo.cn:888/icons/HD-Icons/border-radius/AI_A.png",
+  "version": "0.0.2",
+  "documentation": "https://docs.aihubmix.com/cn",
+  "path": "/aihub_chat",
+  "background": "ai",
+  "configField": [
+    {
+      "fieldName": "api_base_url",
+      "fieldType": "string",
+      "label": "AIHubMix API 地址",
+      "helpText": "AIHubMix API 基础地址",
+      "defaultValue": "https://aihubmix.com/v1",
+      "required": true
+    },
+    {
+      "fieldName": "api_key",
+      "fieldType": "string",
+      "label": "AIHubMix API Key",
+      "helpText": "从 AIHubMix 平台获取的 API Key（格式：sk-***）",
+      "required": true
+    },
+    {
+      "fieldName": "chat_model",
+      "fieldType": "select",
+      "label": "对话模型",
+      "helpText": "选择用于对话的模型",
+      "options": [
+        { "value": "gpt-4o", "label": "GPT-4o", "group": "OpenAI" },
+        { "value": "gpt-4o-mini", "label": "GPT-4o Mini", "group": "OpenAI" },
+        { "value": "claude-3-5-sonnet-20241022", "label": "Claude 3.5 Sonnet", "group": "Anthropic" },
+        { "value": "claude-3-5-haiku-20241022", "label": "Claude 3.5 Haiku", "group": "Anthropic" },
+        { "value": "gemini-2.0-flash-exp", "label": "Gemini 2.0 Flash", "group": "Google" },
+        { "value": "deepseek-chat", "label": "DeepSeek Chat", "group": "DeepSeek" },
+        { "value": "qwen-max", "label": "通义千问 Max", "group": "阿里云" }
+      ],
+      "defaultValue": "gpt-4o-mini"
+    },
+    {
+      "fieldName": "image_model",
+      "fieldType": "select",
+      "label": "图片生成模型",
+      "helpText": "选择用于图片生成的模型",
+      "options": [
+        { "value": "dall-e-3", "label": "DALL-E 3", "group": "OpenAI" },
+        { "value": "dall-e-2", "label": "DALL-E 2", "group": "OpenAI" },
+        { "value": "ideogram-v2", "label": "Ideogram V2", "group": "Ideogram" }
+      ],
+      "defaultValue": "dall-e-3"
+    },
+    {
+      "fieldName": "enable_web_search",
+      "fieldType": "switch",
+      "label": "启用实时搜索",
+      "helpText": "启用 /search 命令，使用 AIHubMix Surfing 功能进行实时联网搜索（基于 Tavily）",
+      "defaultValue": true
+    },
+    {
+      "fieldName": "enable_tts",
+      "fieldType": "switch",
+      "label": "启用 TTS 语音合成",
+      "helpText": "是否启用文本转语音功能",
+      "defaultValue": true
+    },
+    {
+      "fieldName": "tts_voice",
+      "fieldType": "select",
+      "label": "TTS 语音",
+      "helpText": "选择语音合成的声音",
+      "options": [
+        { "value": "alloy", "label": "Alloy" },
+        { "value": "echo", "label": "Echo" },
+        { "value": "fable", "label": "Fable" },
+        { "value": "onyx", "label": "Onyx" },
+        { "value": "nova", "label": "Nova" },
+        { "value": "shimmer", "label": "Shimmer" }
+      ],
+      "defaultValue": "nova",
+      "conditional": {
+        "field": "enable_tts",
+        "operator": "equals",
+        "value": true
+      }
+    },
+    {
+      "fieldName": "enable_stt",
+      "fieldType": "switch",
+      "label": "启用 STT 语音识别",
+      "helpText": "是否启用语音转文本功能",
+      "defaultValue": true
+    },
+    {
+      "fieldName": "system_prompt",
+      "fieldType": "string",
+      "label": "系统提示词",
+      "helpText": "AI 助手的系统提示词，定义其角色和行为",
+      "defaultValue": "你是一个智能助手，能够回答问题、分析图片、生成内容。请用简洁、友好的方式回复用户。",
+      "required": false
+    },
+    {
+      "fieldName": "max_tokens",
+      "fieldType": "string",
+      "label": "最大 Token 数",
+      "helpText": "单次回复的最大 token 数量",
+      "defaultValue": "2000",
+      "required": false
+    },
+    {
+      "fieldName": "temperature",
+      "fieldType": "string",
+      "label": "温度参数",
+      "helpText": "控制回复的随机性，0-2之间，越高越随机",
+      "defaultValue": "0.7",
+      "required": false
+    },
+    {
+      "fieldName": "enable_wxwork",
+      "fieldType": "switch",
+      "label": "启用企业微信对接",
+      "helpText": "启用后可直接与企业微信应用对接，支持消息加密解密",
+      "defaultValue": false
+    },
+    {
+      "fieldName": "wxwork_api_base",
+      "fieldType": "string",
+      "label": "企业微信 API 地址",
+      "helpText": "企业微信API的基础URL地址，官方：https://qyapi.weixin.qq.com",
+      "defaultValue": "https://qyapi.weixin.qq.com",
+      "conditional": { "field": "enable_wxwork", "operator": "equals", "value": true }
+    },
+    {
+      "fieldName": "wxwork_corp_id",
+      "fieldType": "string",
+      "label": "企业微信 CorpID",
+      "helpText": "企业微信的企业ID",
+      "conditional": { "field": "enable_wxwork", "operator": "equals", "value": true }
+    },
+    {
+      "fieldName": "wxwork_secret",
+      "fieldType": "string",
+      "label": "企业微信 Secret",
+      "helpText": "企业微信应用的Secret",
+      "conditional": { "field": "enable_wxwork", "operator": "equals", "value": true }
+    },
+    {
+      "fieldName": "wxwork_agent_id",
+      "fieldType": "string",
+      "label": "企业微信 AgentID",
+      "helpText": "企业微信应用的AgentID",
+      "conditional": { "field": "enable_wxwork", "operator": "equals", "value": true }
+    },
+    {
+      "fieldName": "wxwork_token",
+      "fieldType": "string",
+      "label": "企业微信 Token",
+      "helpText": "企业微信接收消息的Token",
+      "conditional": { "field": "enable_wxwork", "operator": "equals", "value": true }
+    },
+    {
+      "fieldName": "wxwork_encoding_aes_key",
+      "fieldType": "string",
+      "label": "企业微信 EncodingAESKey",
+      "helpText": "企业微信接收消息的EncodingAESKey",
+      "conditional": { "field": "enable_wxwork", "operator": "equals", "value": true }
+    }
+  ],
+  "helpTextField": [
+    { "fieldType": "title", "value": "AIHubMix 智能对话插件" },
+    { "fieldType": "text", "value": "本插件对接 AIHubMix 平台，提供强大的 AI 能力：" },
+    { "fieldType": "text", "value": "✅ 多模型对话：支持 GPT-4、Claude、Gemini、DeepSeek、通义千问等" },
+    { "fieldType": "text", "value": "✅ 图片分析：发送图片给 AI 进行内容分析和理解" },
+    { "fieldType": "text", "value": "✅ 图片生成：根据文字描述生成图片（DALL-E、Ideogram）" },
+    { "fieldType": "text", "value": "✅ 语音识别：支持语音转文本（STT）" },
+    { "fieldType": "text", "value": "✅ 语音合成：AI 回复可转换为语音（TTS）" },
+    { "fieldType": "text", "value": "✅ 实时搜索：联网获取最新信息（AIHubMix Surfing + Tavily）" },
+    { "fieldType": "title", "value": "使用方法" },
+    { "fieldType": "text", "value": "1. 在 AIHubMix 平台（https://aihubmix.com）注册并充值" },
+    { "fieldType": "text", "value": "2. 创建 API Key 并复制到配置中" },
+    { "fieldType": "text", "value": "3. 企业微信对接：启用企业微信开关并填写配置信息" },
+    { "fieldType": "text", "value": "4. 在企业微信应用配置中设置接收消息 URL：" },
+    { "fieldType": "code", "value": "{site_url}/api/plugins/aihub_chat/wxwork" },
+    { "fieldType": "title", "value": "命令说明" },
+    { "fieldType": "text", "value": "• 发送文字：直接对话" },
+    { "fieldType": "text", "value": "• 发送图片：AI 分析图片内容" },
+    { "fieldType": "text", "value": "• 发送语音：转文本后处理" },
+    { "fieldType": "text", "value": "• 以 /draw 或 /画图 开头：生成图片" },
+    { "fieldType": "text", "value": "• 以 /search 或 /搜索 开头：实时联网搜索" },
+    { "fieldType": "text", "value": "• 以 /tts 或 /语音 开头：AI 回复转语音" },
+    { "fieldType": "text", "value": "• 以 /clear 或 /清空 开头：清空对话历史" },
+    { "fieldType": "title", "value": "API 端点" },
+    { "fieldType": "code", "value": "状态检查: GET {site_url}/api/plugins/aihub_chat/status\n测试发送: POST {site_url}/api/plugins/aihub_chat/test" }
+  ],
+  "frontend_page": {
+    "name": "AI 对话管理",
+    "icon": "mdi:robot-outline",
+    "path": "/common/view?hidePadding=true#/api/plugins/aihub_chat/frontend/index.html",
+    "add_to_menu": true
+  }
+}
+

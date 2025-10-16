@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIHub 智能对话 - 管理面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-content {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: #f5f7fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .commands {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .commands h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .command-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .command-item {
+            background: #f5f7fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .command-item strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .command-item small {
+            color: #666;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .test-section h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .result.error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AIHub 智能对话</h1>
+            <p>AI 驱动的智能助手 - 对话、图片、语音、搜索</p>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">💬</div>
+                    <div class="card-title">智能对话</div>
+                </div>
+                <div class="card-content">
+                    支持多种大语言模型，包括 GPT-4、Claude、Gemini、DeepSeek 等，提供流畅的对话体验。
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🖼️</div>
+                    <div class="card-title">图片处理</div>
+                </div>
+                <div class="card-content">
+                    <strong>图片分析：</strong>发送图片让 AI 进行内容识别和分析<br>
+                    <strong>图片生成：</strong>根据文字描述创建精美图片
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🎤</div>
+                    <div class="card-title">语音功能</div>
+                </div>
+                <div class="card-content">
+                    <strong>语音识别（STT）：</strong>将语音转换为文字<br>
+                    <strong>语音合成（TTS）：</strong>将文字转换为自然语音
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🔍</div>
+                    <div class="card-title">Web 搜索</div>
+                </div>
+                <div class="card-content">
+                    AI 可以联网搜索最新信息，获取实时数据，提供准确的回答。
+                </div>
+            </div>
+        </div>
+
+        <div class="commands">
+            <h2>📖 命令使用指南</h2>
+            <div class="command-list">
+                <div class="command-item">
+                    <strong>💬 普通对话</strong>
+                    <small>直接发送文字消息即可与 AI 对话</small>
+                </div>
+                <div class="command-item">
+                    <strong>🖼️ 图片分析</strong>
+                    <small>直接发送图片，AI 会自动分析图片内容</small>
+                </div>
+                <div class="command-item">
+                    <strong>🎨 生成图片</strong>
+                    <small>/draw 描述 或 /画图 描述（例如：/draw 一只可爱的猫咪）</small>
+                </div>
+                <div class="command-item">
+                    <strong>🔍 Web 搜索</strong>
+                    <small>/search 关键词 或 /搜索 关键词（例如：/search Python 教程）</small>
+                </div>
+                <div class="command-item">
+                    <strong>🔊 语音合成</strong>
+                    <small>/tts 文字 或 /语音 文字（例如：/tts 你好世界）</small>
+                </div>
+                <div class="command-item">
+                    <strong>🎤 语音识别</strong>
+                    <small>直接发送语音消息，AI 会自动转换为文字并处理</small>
+                </div>
+                <div class="command-item">
+                    <strong>🔄 清空历史</strong>
+                    <small>/clear 或 /清空 或 /reset 或 /重置</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 功能测试</h2>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="testPlugin()">
+                    <span>测试插件连接</span>
+                </button>
+                <button class="btn btn-secondary" onclick="checkStatus()">
+                    <span>检查状态</span>
+                </button>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>处理中...</p>
+            </div>
+            <div class="result" id="result"></div>
+        </div>
+
+        <div class="cards" style="margin-top: 30px;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <div class="card-title">使用统计</div>
+                </div>
+                <div class="stats" id="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="conversations">-</div>
+                        <div class="stat-label">活跃对话</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="mediaFiles">-</div>
+                        <div class="stat-label">媒体文件</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">⚙️</div>
+                    <div class="card-title">配置信息</div>
+                </div>
+                <div class="card-content">
+                    <div style="margin-bottom: 10px;">
+                        <strong>模型：</strong><span id="modelInfo">-</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>图片模型：</strong><span id="imageModelInfo">-</span>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <strong>Web 搜索：</strong><span id="webSearchInfo">-</span>
+                    </div>
+                    <div>
+                        <strong>语音功能：</strong><span id="voiceInfo">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testPlugin() {
+            showLoading();
+            try {
+                const response = await fetch('/api/plugins/aihub_chat/test', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.ok) {
+                    showResult('success', `✅ 测试成功：${data.message}`);
+                } else {
+                    showResult('error', `❌ 测试失败：${data.detail || '未知错误'}`);
+                }
+            } catch (error) {
+                showResult('error', `❌ 请求失败：${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function checkStatus() {
+            showLoading();
+            try {
+                const response = await fetch('/api/plugins/aihub_chat/status');
+                const data = await response.json();
+                
+                // 更新统计信息
+                document.getElementById('conversations').textContent = 
+                    data.statistics?.active_conversations || 0;
+                document.getElementById('mediaFiles').textContent = 
+                    data.statistics?.media_files || 0;
+                
+                // 更新配置信息
+                document.getElementById('modelInfo').textContent = 
+                    data.config?.chat_model || '-';
+                document.getElementById('imageModelInfo').textContent = 
+                    data.config?.image_model || '-';
+                document.getElementById('webSearchInfo').textContent = 
+                    data.config?.enable_web_search ? '✅ 已启用' : '❌ 未启用';
+                
+                const ttsEnabled = data.config?.enable_tts;
+                const sttEnabled = data.config?.enable_stt;
+                let voiceStatus = [];
+                if (ttsEnabled) voiceStatus.push('TTS');
+                if (sttEnabled) voiceStatus.push('STT');
+                document.getElementById('voiceInfo').textContent = 
+                    voiceStatus.length > 0 ? `✅ ${voiceStatus.join(', ')}` : '❌ 未启用';
+                
+                showResult('success', `✅ 状态检查完成！\n插件版本: ${data.plugin}\nAPI 配置: ${data.config?.has_api_key ? '已配置' : '未配置'}`);
+            } catch (error) {
+                showResult('error', `❌ 状态检查失败：${error.message}`);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('result').classList.remove('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result show ${type}`;
+            resultDiv.textContent = message;
+        }
+
+        // 页面加载时自动检查状态
+        window.addEventListener('load', () => {
+            checkStatus();
+        });
+    </script>
+</body>
+</html>
+
