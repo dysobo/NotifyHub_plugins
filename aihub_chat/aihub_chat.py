@@ -209,13 +209,17 @@ async def wxwork_webhook(
         body = await request.body()
         xml_data = body.decode('utf-8')
         
+        logger.info(f"Received WXWork XML (encrypted): {xml_data[:200]}...")
+        
         # 解密消息
         msg_dict = crypto.decrypt_msg(msg_signature, timestamp, nonce, xml_data)
         
         if not msg_dict:
+            logger.error("Decryption failed, msg_dict is empty")
             raise HTTPException(status_code=400, detail="Decryption failed")
         
-        logger.info(f"Received WXWork message: {json.dumps(msg_dict, ensure_ascii=False)}")
+        logger.info(f"Decrypted WXWork message: {json.dumps(msg_dict, ensure_ascii=False)}")
+        logger.info(f"Message type: {msg_dict.get('MsgType')}, AgentID: {msg_dict.get('AgentID')}, From: {msg_dict.get('FromUserName')}")
         
         # 处理消息
         await _handle_wxwork_message(msg_dict)
