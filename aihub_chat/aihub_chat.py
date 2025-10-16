@@ -209,17 +209,13 @@ async def wxwork_webhook(
         body = await request.body()
         xml_data = body.decode('utf-8')
         
-        logger.info(f"Received WXWork XML (encrypted): {xml_data[:200]}...")
-        
         # 解密消息
         msg_dict = crypto.decrypt_msg(msg_signature, timestamp, nonce, xml_data)
         
         if not msg_dict:
-            logger.error("Decryption failed, msg_dict is empty")
             raise HTTPException(status_code=400, detail="Decryption failed")
         
-        logger.info(f"Decrypted WXWork message: {json.dumps(msg_dict, ensure_ascii=False)}")
-        logger.info(f"Message type: {msg_dict.get('MsgType')}, AgentID: {msg_dict.get('AgentID')}, From: {msg_dict.get('FromUserName')}")
+        logger.info(f"Received WXWork message: {json.dumps(msg_dict, ensure_ascii=False)}")
         
         # 处理消息
         await _handle_wxwork_message(msg_dict)
@@ -237,12 +233,6 @@ async def _handle_wxwork_message(msg_dict: Dict[str, Any]) -> None:
     msg_type = msg_dict.get('MsgType', 'text')
     user_id = msg_dict.get('FromUserName', 'unknown')
     msg_id = msg_dict.get('MsgId', '')
-    
-    # 跳过事件类型的消息（subscribe、unsubscribe 等）
-    if msg_type == 'event':
-        event_type = msg_dict.get('Event', '')
-        logger.info(f"Received event: {event_type} from {user_id}, skipping")
-        return
     
     # 消息去重：检查是否已处理过
     if msg_id and msg_id in processed_message_ids:
@@ -267,20 +257,17 @@ async def _handle_wxwork_message(msg_dict: Dict[str, Any]) -> None:
         if msg_type == 'text':
             # 文本消息
             content = msg_dict.get('Content', '')
-            logger.info(f"Processing text message from {user_id}: {content}")
             await _handle_text_message(user_id, content, msg_dict, use_wxwork=True)
         elif msg_type == 'image':
             # 图片消息
             media_id = msg_dict.get('MediaId', '') or msg_dict.get('PicUrl', '')
-            logger.info(f"Processing image message from {user_id}, MediaId: {media_id}")
             await _handle_wxwork_image_message(user_id, media_id, msg_dict)
         elif msg_type == 'voice':
             # 语音消息
             media_id = msg_dict.get('MediaId', '')
-            logger.info(f"Processing voice message from {user_id}, MediaId: {media_id}")
             await _handle_wxwork_voice_message(user_id, media_id, msg_dict)
         else:
-            logger.warning(f"Unsupported WXWork message type: {msg_type}, Full message: {msg_dict}")
+            logger.warning(f"Unsupported WXWork message type: {msg_type}")
             
     except Exception as e:
         logger.error(f"Error handling WXWork message: {e}", exc_info=True)
