@@ -56,9 +56,9 @@
     {
       "fieldName": "enable_web_search",
       "fieldType": "switch",
-      "label": "启用实时搜索",
-      "helpText": "启用 /search 命令，使用 AIHubMix Surfing 功能进行实时联网搜索（基于 Tavily）",
-      "defaultValue": true
+      "label": "启用实时搜索（测试中）",
+      "helpText": "启用 /search 命令，使用 AIHubMix Surfing 功能。注意：该功能正在测试中，搜索结果可能不完全准确",
+      "defaultValue": false
     },
     {
       "fieldName": "enable_tts",
@@ -177,7 +177,7 @@
     { "fieldType": "text", "value": "✅ 图片生成：根据文字描述生成图片（DALL-E、Ideogram）" },
     { "fieldType": "text", "value": "✅ 语音识别：支持语音转文本（STT）" },
     { "fieldType": "text", "value": "✅ 语音合成：AI 回复可转换为语音（TTS）" },
-    { "fieldType": "text", "value": "✅ 实时搜索：联网获取最新信息（AIHubMix Surfing + Tavily）" },
+    { "fieldType": "text", "value": "⚠️ 实时搜索：联网获取最新信息（测试中，结果可能不准确）" },
     { "fieldType": "title", "value": "使用方法" },
     { "fieldType": "text", "value": "1. 在 AIHubMix 平台（https://aihubmix.com）注册并充值" },
     { "fieldType": "text", "value": "2. 创建 API Key 并复制到配置中" },

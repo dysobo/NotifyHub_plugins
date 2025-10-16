@@ -474,7 +474,16 @@ async def _web_search(user_id: str, query: str) -> None:
         
         search_result = response.choices[0].message.content
         
-        await _send_wxwork_response(user_id, f"🔍 实时搜索：\n\n{search_result}")
+        # 记录详细日志用于调试
+        logger.info(f"Search response model: {response.model}")
+        logger.info(f"Search response usage: {response.usage}")
+        logger.info(f"Search result preview: {search_result[:200]}...")
+        
+        # 检查响应中是否有搜索标记
+        if hasattr(response, 'model') and response.model:
+            logger.info(f"Actual model used: {response.model}")
+        
+        await _send_wxwork_response(user_id, f"🔍 搜索结果：\n\n{search_result}\n\n⚠️ 注：搜索功能正在测试中，结果可能不准确")
         
     except Exception as e:
         logger.error(f"Search failed: {e}", exc_info=True)

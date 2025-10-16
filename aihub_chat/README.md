@@ -51,10 +51,10 @@ docker restart notifyhub
 - **STT（语音转文本）**：基于 Whisper 模型的高精度语音识别
 - **TTS（文本转语音）**：支持 6 种语音（Alloy、Echo、Fable、Onyx、Nova、Shimmer）
 
-### 🔍 实时搜索
-- **AIHubMix Surfing**：真正的联网搜索（基于 Tavily）
-- 获取最新价格、天气、新闻等实时信息
-- 自动包含信息来源链接
+### 🔍 实时搜索（⚠️ 测试中）
+- **AIHubMix Surfing**：联网搜索功能（基于 Tavily）
+- 尝试获取最新价格、天气、新闻等实时信息
+- ⚠️ 注意：该功能正在完善中，搜索结果可能不完全准确或为历史数据
 
 ### 🧠 智能识别
 - **语音绘画**：语音说"画一只猫"自动生成图片
