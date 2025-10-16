@@ -59,13 +59,13 @@
 ![GitHub stars](https://img.shields.io/github/stars/dysobo/NotifyHub_plugins?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/dysobo/NotifyHub_plugins?style=social)
 ![GitHub watchers](https://img.shields.io/github/watchers/dysobo/NotifyHub_plugins?style=social)
-![GitHub repo size](https://img.shields.io/github/repo-size/dysobo/NotifyHub_plugins?color=green)
 
 </div>
 
 ### 📈 代码统计
 ![GitHub language count](https://img.shields.io/github/languages/count/dysobo/NotifyHub_plugins)
 ![GitHub top language](https://img.shields.io/github/languages/top/dysobo/NotifyHub_plugins)
+![GitHub repo size](https://img.shields.io/github/repo-size/dysobo/NotifyHub_plugins?color=green)
 
 ### 📅 活动统计
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/dysobo/NotifyHub_plugins)
